@@ -66,7 +66,7 @@ class FiFoQueue(object):
 
 
 class Disease(object):
-    def get_parameter(self,parameter,default):
+    def get_parameter(self,parameter,default): #this is how it will get paramets from obj dict
         value = default
         if parameter in self.user_specified_options:
             value = self.user_specified_options[parameter]
@@ -89,7 +89,10 @@ class Disease(object):
             raise Exception(message)
     def __init__(self,optionsdict={}):
         self.version = '2020-06-25-github'
-        self.user_specified_options = optionsdict
+        self.user_specified_options = optionsdict # gets params from optionsdict speicified in creator so other functions can use it as part of self
+        
+
+        ### location of all disease paramater settings
         self.quarantining = self.get_parameter('quarantining',True)
         self.contact_tracing = self.get_parameter('contact_tracing',True)
         self.initial_infected_fraction = self.get_parameter('initial_infected_fraction',0.00)
@@ -118,6 +121,8 @@ class Disease(object):
         #self.serial_interval_distribution = probtools._global_poisson._createPDF(self.serial_interval,1)
         self.incubation_picker = probtools.DiscreteGammaFull(self.incubation_period,4)
         self.serial_interval_distribution = probtools.DiscreteGammaFull(self.serial_interval,4).densities
+        ### end of parameter setting in disease
+
         result = 0
         for index1 in range(14):
             for index2 in range(14):
@@ -142,7 +147,7 @@ class Disease(object):
         self.testing_queue = FiFoQueue()
         self.contact_tracing_queue = FiFoQueue()
 
-        self.registrar = worldbuilder.University(optionsdict)
+        self.registrar = worldbuilder.University(optionsdict) # passes current opinions dict to University builder 
         self.registrar.generate()
 
 
@@ -406,7 +411,7 @@ under certain conditions.''')
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.''')
-    pandemic = Disease({})
+    pandemic = Disease({}) # setting empty dict of values
     pandemic.multiple_runs(2)
 
     dc = gather.DataCollector(pandemic)
@@ -416,5 +421,5 @@ GNU General Public License for more details.''')
     dc.register_report('Total Instructor Infections',{'susceptible' : False, 'instructor' : True},lambda x: x[-1] - x[0])
     result = dc.generate_csv()
 
-    file = open('mytestout.csv','w')
+    file = open('secondoutput.csv','w')
     file.write(result.output())

@@ -20,12 +20,15 @@ import random
 import math
 import ptracker
 
+
+
+# get parameter for worldbuilder _ similar to disease
 def get_parameter(optionsdict,parameter,default):
     value = default
     if parameter in optionsdict:
         value = optionsdict[parameter]
     if '_applied' not in optionsdict:
-        optionsdict['_applied'] = {}
+        optionsdict['_applied'] = {} # _applied value?
     optionsdict['_applied'][parameter] = value
     return value
 
@@ -75,6 +78,7 @@ class BinObject(object):
 
 class University(object):
     def __init__(self,optionsdict):
+        ### params for university class
         self.maximum_section_size = get_parameter(optionsdict,'class_size_limit',150)
         self.contact_upscale_factor = get_parameter(optionsdict,'contact_upscale_factor',1.0)
         self.friendship_contacts = get_parameter(optionsdict,'friendship_contacts',4.0) * self.contact_upscale_factor
@@ -100,7 +104,7 @@ class University(object):
         self.selection_engine = {}
         self.department_selector = {}
         self.fastsubsets = None
-        self.test = get_parameter(optionsdict,'test',False)
+        self.test = get_parameter(optionsdict,'test',False) # means are we testing people?
         self.cohort_data = {}
         self.student_data = {}
         self.class_data = {}
