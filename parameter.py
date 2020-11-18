@@ -1,4 +1,5 @@
 import csv
+import ast
 
 
 
@@ -13,19 +14,12 @@ class parameter_creator:
             self.fields = next(csvreader)
             for row in csvreader:
                 self.rows.append(row)
-
-            print('# of rows: %d'%(csvreader.line_num))
-
-        print('field names are:' + ', '.join(field for field in self.fields))
-        print('\nFirst 5 rows are:\n') 
+        print(len(self.rows))
         for row in self.rows:
             # parsing each column of a row 
-               if len(row) > 2:
-                   if row[2] == 'bool':
-                       row[1] = ('True' == row[1])
-                   if row[2] == 'int':
-                       row[1] = float(row[1])
-                      
+            if row[1] != '': 
+                row[1] = ast.literal_eval(row[1])            
+
     
     def dict_convert(self):
         for row in self.rows:
@@ -43,5 +37,5 @@ class parameter_creator:
 
 
 
-parameters = parameter_creator("test.csv")
+parameters = parameter_creator("parameters.csv")
 print("dict; ", parameters.dict_parameters)

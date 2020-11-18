@@ -13,7 +13,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
+import csv
 import time,os,sys
 import probtools,random
 import universal
@@ -101,9 +101,9 @@ class Disease(object):
         self.incubation_period = self.get_parameter('incubation_period',5.2)
         self.serial_interval = self.get_parameter('serial_interval',5.8)
         self.symptomatic_fraction = self.get_parameter('symptomatic_fraction',0.25)
-        self.recovery_days = 14
-        self.quarantine_days = 14
-        self.days_indetectable = 3
+        self.recovery_days = self.get_parameter('recovery_days',14)
+        self.quarantine_days = self.get_parameter('quarantine_days',14)
+        self.days_indetectable = self.get_parameter('days_indetectable',3)
         self.R0 = self.get_parameter('R0',3.8)
         self.contact_rate = self.get_parameter('contact_rate',19)
         self.npi_factor = self.get_parameter('npi_factor',0.5)
@@ -158,9 +158,11 @@ class Disease(object):
         self.scenario_name = self.get_parameter('scenario_name','')
         self.test = self.get_parameter('test',False)
         self.run_days = self.get_parameter('run_days',100)
+        '''
         self.filename = self.get_parameter('filename','(automatic)')
         if self.filename == '(automatic)':
             self.filename = str(int(time.time()))
+            '''
         self.parameter_audit()
         self.recorder.information = self.user_specified_options['_applied']
 
@@ -412,6 +414,17 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.''')
     pandemic = Disease({}) # setting empty dict of values
+    '''
+    adding names of items to csv dict
+    print('#'*40)
+    print(pandemic.user_specified_options['_applied'])
+    with open('parameters.csv', mode='w', newline='') as test_file:
+        test_writer = csv.writer(test_file)
+        test_writer.writerow(['name', 'value'])
+        for key in pandemic.user_specified_options['_applied']:
+            test_writer.writerow([key, pandemic.user_specified_options['_applied'][key]])
+    print('#'*40)
+    '''
     pandemic.multiple_runs(2)
 
     dc = gather.DataCollector(pandemic)
