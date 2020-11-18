@@ -18,16 +18,20 @@ class parameter_creator:
 
         print('field names are:' + ', '.join(field for field in self.fields))
         print('\nFirst 5 rows are:\n') 
-        for row in self.rows[:5]: 
+        for row in self.rows:
             # parsing each column of a row 
-            for col in row: 
-                print("%10s"%col), 
-            print('\n') 
-
+               if len(row) > 2:
+                   if row[2] == 'bool':
+                       row[1] = ('True' == row[1])
+                   if row[2] == 'int':
+                       row[1] = float(row[1])
+                      
     
     def dict_convert(self):
         for row in self.rows:
+           value = ''
            self.dict_parameters[row[0]] = row[1]
+
 
 
     def __init__(self, csv_location):
@@ -39,5 +43,5 @@ class parameter_creator:
 
 
 
-parameters = parameter_creator("parameters.csv")
+parameters = parameter_creator("test.csv")
 print("dict; ", parameters.dict_parameters)
