@@ -1,0 +1,134 @@
+{
+    "R0": {
+        "mean": 3.8,
+        "std_dev": 0.253
+    },
+    "academic_contacts": {
+        "mean": 4.0,
+        "std_dev": 0.267
+    },
+    "broad_environmental_contacts": {
+        "mean": 4.0,
+        "std_dev": 0.267
+    },
+    "broad_social_contacts": {
+        "mean": 2.0,
+        "std_dev": 0.133
+    },
+    "class_size_limit": {
+        "mean": 150,
+        "std_dev": 10.0
+    },
+    "contact_rate": {
+        "mean": 19,
+        "std_dev": 1.0
+    },
+    "contact_tracing": {
+        "mean": true,
+        "std_dev": 0.7
+    },
+    "contact_tracing_days": {
+        "mean": 2,
+        "std_dev": 0.0
+    },
+    "contact_tracing_quarantine_rate": {
+        "mean": 1.0,
+        "std_dev": 0.067
+    },
+    "contact_tracing_testing_rate": {
+        "mean": 1.0,
+        "std_dev": 0.067
+    },
+    "contact_upscale_factor": {
+        "mean": 1.0,
+        "std_dev": 0.067
+    },
+    "daily_testing_false_negative": {
+        "mean": 0.03,
+        "std_dev": 0.002
+    },
+    "daily_testing_false_positive": {
+        "mean": 0.001,
+        "std_dev": 0.0
+    },
+    "daily_testing_fraction": {
+        "mean": 0.03,
+        "std_dev": 0.002
+    },
+    "days_indetectable": {
+        "mean": 3,
+        "std_dev": 0.0
+    },
+    "department_environmental_contacts": {
+        "mean": 4.0,
+        "std_dev": 0.267
+    },
+    "friendship_contacts": {
+        "mean": 4.0,
+        "std_dev": 0.267
+    },
+    "incubation_period": {
+        "mean": 5.2,
+        "std_dev": 0.347
+    },
+    "initial_infected_fraction": {
+        "mean": 0.0,
+        "std_dev": 0.0
+    },
+    "initial_removed_fraction": {
+        "mean": 0.05,
+        "std_dev": 0.003
+    },
+    "npi_factor": {
+        "mean": 0.5,
+        "std_dev": 0.033
+    },
+    "online_transition": {
+        "mean": 30,
+        "std_dev": 2.0
+    },
+    "parameter_checking": {
+        "mean": true,
+        "std_dev": 0.7
+    },
+    "quarantine_days": {
+        "mean": 14,
+        "std_dev": 0.0
+    },
+    "quarantining": {
+        "mean": true,
+        "std_dev": 0.7
+    },
+    "recovery_days": {
+        "mean": 14,
+        "std_dev": 0.0
+    },
+    "residential_neighbors": {
+        "mean": 1.0,
+        "std_dev": 0.067
+    },
+    "run_days": {
+        "mean": 100,
+        "std_dev": 6.0
+    },
+    "serial_interval": {
+        "mean": 5.8,
+        "std_dev": 0.387
+    },
+    "social_distancing": {
+        "mean": true,
+        "std_dev": 0.7
+    },
+    "symptomatic_fraction": {
+        "mean": 0.25,
+        "std_dev": 0.017
+    },
+    "test": {
+        "mean": false,
+        "std_dev": 0.7
+    },
+    "verbose": {
+        "mean": false,
+        "std_dev": 0.7
+    }
+}

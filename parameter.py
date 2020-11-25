@@ -1,41 +1,57 @@
-import csv
-import ast
-
+import json
+import scipy.stats as stats
 
 
 class parameter_creator:
-    def get_params(self, csv_location):
-        self.fields = []
-        self.rows = []
-        with open(csv_location, 'r') as csvfile:
+    # get mean and std deviation from json file into dict
+    def get_params_dist(self):
+        with open(self.json_file, 'r') as j_file:
+            self.dict_dist = json.load(j_file)
+            
 
-            csvreader = csv.reader(csvfile)
-
-            self.fields = next(csvreader)
-            for row in csvreader:
-                self.rows.append(row)
-        print(len(self.rows))
-        for row in self.rows:
-            # parsing each column of a row 
-            if row[1] != '': 
-                row[1] = ast.literal_eval(row[1])            
+    def update_json_file(self, dictionary):
+        with open(self.json_file, 'w') as json_file:
+            json.dump(dictionary, json_file, sort_keys=True, indent=4, separators=(',', ': '))
 
     
-    def dict_convert(self):
-        for row in self.rows:
-           value = ''
-           self.dict_parameters[row[0]] = row[1]
+    def randomized_sample(self):
+        for key, value in self.dict_dist.items():
+            if isinstance(value['mean'], (int, float)) and not isinstance(value['mean'], bool): # must clarify bool as bool is subclass of int
+                
+                # setup normal distribution
+                norm = stats.norm(value["mean"], # mean
+                                  value['std_dev']
+                           )
+
+                # sample normal 
+                sample_val = norm.rvs(size=1)[0]
+                sample_val = float('%.3f' % sample_val)  # makes values only have 3 decimal points for neatness
+
+                # convert value to int if original was an int
+                if isinstance(value['mean'], int):
+                    # if mean is int verify that it remains that way
+                     sample_val = int(sample_val)
+                self.dict_params[key] = sample_val
 
 
+            if isinstance(value['mean'], bool):
+                bern = stats.bernoulli(value['std_dev'])
 
-    def __init__(self, csv_location):
-        self.fields = []
-        self.rows = []
-        self.get_params(csv_location)
-        self.dict_parameters = {}
-        self.dict_convert()
+                sample_val = (0 != bern.rvs(size=1)[0])
+                self.dict_params[key] = sample_val
 
 
+        print(self.dict_params)
+        return self.dict_params
 
-parameters = parameter_creator("parameters.csv")
-print("dict; ", parameters.dict_parameters)
+    
+           
+    def __init__(self, json_file):
+        self.json_file = json_file
+        self.dict_params = {}
+        self.dict_dist = {}
+        self.get_params_dist()
+
+
+parameters = parameter_creator("param.txt")
+parameters.randomized_sample()

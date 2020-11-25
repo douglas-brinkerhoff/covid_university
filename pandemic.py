@@ -12,8 +12,8 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-import csv
+import parameter as pm
+import json
 import time,os,sys
 import probtools,random
 import universal
@@ -71,7 +71,7 @@ class Disease(object):
         if parameter in self.user_specified_options:
             value = self.user_specified_options[parameter]
         if '_applied' not in self.user_specified_options:
-            self.user_specified_options['_applied'] = {'version' : self.version}
+            self.user_specified_options['_applied'] ={} 
         self.user_specified_options['_applied'][parameter] = value
         return value
     def parameter_audit(self):
@@ -115,7 +115,6 @@ class Disease(object):
         self.daily_testing_fraction = self.get_parameter('daily_testing_fraction',0.03)
         self.daily_testing_false_positive = self.get_parameter('daily_testing_false_positive',0.001)
         self.daily_testing_false_negative = self.get_parameter('daily_testing_false_negative',0.030)
-
 
         self.people = universal.students + universal.instructors
         #self.serial_interval_distribution = probtools._global_poisson._createPDF(self.serial_interval,1)
@@ -402,30 +401,17 @@ class Disease(object):
 
 
 if __name__ == '__main__':
-    print('''pandemic.py  Copyright (C) 2020 Philip T. Gressman and Jennifer R. Peck
-This program is distributed under the GNU General Public License Version 3
-See <https://www.gnu.org/licenses/gpl-3.0.html>
-This program comes with ABSOLUTELY NO WARRANTY.
-This is free software, and you are welcome to redistribute it
-under certain conditions.''')
-    print('=' * 40)
-    print('''This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.''')
+
     pandemic = Disease({}) # setting empty dict of values
-    '''
-    adding names of items to csv dict
+    
+    #adding names of items to csv dict
     print('#'*40)
     print(pandemic.user_specified_options['_applied'])
-    with open('parameters.csv', mode='w', newline='') as test_file:
-        test_writer = csv.writer(test_file)
-        test_writer.writerow(['name', 'value'])
-        for key in pandemic.user_specified_options['_applied']:
-            test_writer.writerow([key, pandemic.user_specified_options['_applied'][key]])
+    with open('param.txt', mode='w') as test_file:
+        json.dump(pandemic.user_specified_options['_applied'], test_file, indent=4,separators=(',', ': ')) 
     print('#'*40)
-    '''
     pandemic.multiple_runs(2)
+
 
     dc = gather.DataCollector(pandemic)
     dc.register_report('Total Infected',{'susceptible' : False},lambda x: x[-1] - x[0])
