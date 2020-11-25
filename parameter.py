@@ -33,7 +33,7 @@ class parameter_creator:
                      sample_val = int(sample_val)
                 self.dict_params[key] = sample_val
 
-
+            # if bool then sample bernoulli instead of normal
             if isinstance(value['mean'], bool):
                 bern = stats.bernoulli(value['std_dev'])
 
