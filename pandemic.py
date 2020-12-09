@@ -4,7 +4,7 @@
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, version 3 of the License.
-#
+#ness for each infected individual.The Gamma distribution is widely used in connectioness for each infected individual.The Gamma distribution is widely used in connection with COVIDmodeling [18] for these parameters; wn with COVIDmodeling [18] for these parameters; w
 #    This program is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -66,7 +66,13 @@ class FiFoQueue(object):
 
 
 class Disease(object):
+    """
+    Primary class for simulating pandemic
+    """
     def get_parameter(self,parameter,default):
+        """
+        Return parameter value if specified        
+        """
         value = default
         if parameter in self.user_specified_options:
             value = self.user_specified_options[parameter]
@@ -74,7 +80,11 @@ class Disease(object):
             self.user_specified_options['_applied'] = {'version' : self.version}
         self.user_specified_options['_applied'][parameter] = value
         return value
+
     def parameter_audit(self):
+        """
+        Ensures that all parameters are specified
+        """
         should_raise = self.get_parameter('parameter_checking',True)
         must_raise = False
         message = 'Unknown parameters: '
@@ -87,49 +97,114 @@ class Disease(object):
         print(self.user_specified_options['_applied'])
         if must_raise:
             raise Exception(message)
+
     def __init__(self,optionsdict={}):
         self.version = '2020-06-25-github'
         self.user_specified_options = optionsdict
+
+        # Parameter - whether a quarantine procedure is in place
         self.quarantining = self.get_parameter('quarantining',True)
+
+        # Parameter - whether contact tracing is in place
         self.contact_tracing = self.get_parameter('contact_tracing',True)
+
+        # Parameter - fraction of population that is initially infected
         self.initial_infected_fraction = self.get_parameter('initial_infected_fraction',0.00)
+
+        # Parameter - fraction of population that is initially immune
         self.initial_removed_fraction = self.get_parameter('initial_removed_fraction',0.05)
+
+        # ?
         self.removed_cohorts = self.get_parameter('removed_cohorts',[])
+
+        # Parameter - mean incubation perion
         self.incubation_period = self.get_parameter('incubation_period',5.2)
+
+        # Parameter - Mean serial interval
         self.serial_interval = self.get_parameter('serial_interval',5.8)
+
+        # Parameter - fraction of cases that are symptomatic
         self.symptomatic_fraction = self.get_parameter('symptomatic_fraction',0.25)
+
+        # Number of days from infection to recovery
         self.recovery_days = 14
+
+        # Number of days spent before being released from quarantine
         self.quarantine_days = 14
+
+        # Days after infection in which diseased state cannot be detected by tests
         self.days_indetectable = 3
+
+        # Basic reproduction number : this is used to parameterize contact transmission probability
         self.R0 = self.get_parameter('R0',3.8)
+
+        # Average contact rate ??
         self.contact_rate = self.get_parameter('contact_rate',19)
+
+        # Transmission probability reduction from using masks
         self.npi_factor = self.get_parameter('npi_factor',0.5)
 
+        # Number of outside cases to occur per day
         self.daily_outside_cases = self.get_parameter('daily_outside_cases',[1,0,0,0])
+
+        # Number of traced contacts who can be tested
         self.contact_tracing_testing_rate = self.get_parameter('contact_tracing_testing_rate',1.0)
+
+        # Number of traced contacts who get quarantined
         self.contact_tracing_quarantine_rate = self.get_parameter('contact_tracing_quarantine_rate',1.0)
+
+        # Number of days it takes to complete contact tracing
         self.contact_tracing_days = self.get_parameter('contact_tracing_days',2)
+
+        # Surveillance testing rate
         self.daily_testing_fraction = self.get_parameter('daily_testing_fraction',0.03)
+
+        # False positive rate
         self.daily_testing_false_positive = self.get_parameter('daily_testing_false_positive',0.001)
+
+        # False negative rate
         self.daily_testing_false_negative = self.get_parameter('daily_testing_false_negative',0.030)
 
-
+        # Create a list of all the people in the University (student plus instructors)
         self.people = universal.students + universal.instructors
-        #self.serial_interval_distribution = probtools._global_poisson._createPDF(self.serial_interval,1)
+        
+        # Create discrete gamma distributions for incubation time and serial interval with means given
+        # by parameters defined above, and k=4
         self.incubation_picker = probtools.DiscreteGammaFull(self.incubation_period,4)
         self.serial_interval_distribution = probtools.DiscreteGammaFull(self.serial_interval,4).densities
+
+        # This just shows the marginal probability of pre-symptomatic transmission.  Doesn't affect 
+        # anything else
         result = 0
         for index1 in range(14):
             for index2 in range(14):
                 if index1 < index2:
                     result += self.serial_interval_distribution[index1] * self.incubation_picker.densities[index2]
         print('+++++ Presymptomatic Transmission:',result)
+
+        # This part is pretty confusing.  So they start out by modelling serial interval as a 
+        # discretized gamma distribution with mean 5.8 (days) and k = 4.  This provides a probability
+        # distribution over length of time between contracting the virus and *potentially* transmitting
+        # it to someone else.  They then argue that an individual's transmission probability is 
+        # proportional to this distribution, i.e. a person't transmission probability is highest
+        # at the most likely serial interval.  They then normalize the resulting transmission 
+        # probabilities so that given a certain number of contacts (self.contact_rate), the expected 
+        # reproduction rate is R0 (i.e. if you simulate 19 contacts per day, with transmission
+        # probability given by self.serial_interval_distribution[day], then add up the total number
+        # of people infected over all days, then the expected value of that number is R0).  This is confused by
+        # the presence of npi_factor here, which simply reduces the transmission probabilities.  The 
+        # factor of 2.0 comes from the fact that the R0 that they like to use (3.8) is computed from
+        # a circumstance in which npi_factor is already estimated to be 0.5, so they divide it out.  
+        # Very stupid hard-coded thing, and we should change it, but I leave it here for consistency.
         for index in range(len(self.serial_interval_distribution)):
             myval = self.serial_interval_distribution[index] * self.R0 * 2.0 / self.contact_rate * self.npi_factor
             if myval > 1.0:
                 Exception('contact_rate is incompatibly small for given R0')
+            # After these reassignments, self.serial_interval_distribution is no longer 
+            # actually serial interval, but rather transmission probabilities as a function of days since infection.  
             self.serial_interval_distribution[index] = myval
 
+        # I'm not sure how this computes the attack rate, but it doesn't affect anything else.
         probsympt = 1.0
         probasympt = 1.0
         for prob in self.serial_interval_distribution:
@@ -139,12 +214,14 @@ class Disease(object):
         probasympt = 1-probasympt
         print('+++++ Attack Rate: ',probasympt + (probsympt - probasympt) * self.symptomatic_fraction)
 
+        # Initialize a special data structure that acts as a hybrid between a queue and a set (a 
+        # queue with no duplicates).
         self.testing_queue = FiFoQueue()
         self.contact_tracing_queue = FiFoQueue()
 
+        # Get the worldbuilder and generate a random population
         self.registrar = worldbuilder.University(optionsdict)
         self.registrar.generate()
-
 
         self.recorded_info = {}
         self.recorder = worldbuilder.HistoryRecord()
@@ -159,10 +236,10 @@ class Disease(object):
         self.parameter_audit()
         self.recorder.information = self.user_specified_options['_applied']
 
-        #if self.test:
-            #self.registrar._test()
-
     def reset(self,regenerate=True):
+        """
+        Reset the simulation (for multiple runs)
+        """
         self.recorder.reset(regenerate)
         self.testing_queue.reset()
         self.contact_tracing_queue.reset()
