@@ -52,8 +52,8 @@
         "std_dev": 0.0
     },
     "daily_testing_fraction": {
-        "mean": 0.03,
-        "std_dev": 0.002
+        "mean": 0.002,
+        "std_dev": 0.001
     },
     "days_indetectable": {
         "mean": 3,
@@ -72,7 +72,7 @@
         "std_dev": 0.347
     },
     "initial_infected_fraction": {
-        "mean": 0.0,
+        "mean": 0.005,
         "std_dev": 0.0
     },
     "initial_removed_fraction": {
@@ -108,8 +108,8 @@
         "std_dev": 0.067
     },
     "run_days": {
-        "mean": 100,
-        "std_dev": 6.0
+        "mean": 214,
+        "std_dev": 0
     },
     "serial_interval": {
         "mean": 5.8,
@@ -129,6 +129,6 @@
     },
     "verbose": {
         "mean": false,
-        "std_dev": 0.7
+        "std_dev": 0
     }
 }
