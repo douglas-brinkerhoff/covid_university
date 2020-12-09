@@ -19,6 +19,8 @@ import probtools,random
 import universal
 import worldbuilder2 as worldbuilder
 import gather2 as gather
+from sklearn.metrics import mean_squared_error
+
 
 class FiFoQueue(object):
     # Adds item in a first-in, first-out queue
@@ -84,11 +86,11 @@ class Disease(object):
                 if should_raise:
                     must_raise = True
                     message += key + ' '
-        print(self.user_specified_options['_applied'])
         if must_raise:
             raise Exception(message)
     def __init__(self,optionsdict={}):
-        self.version = '2020-06-25-github'
+        self.daily_tested = []
+        self.daily_tested_positive = []
         self.user_specified_options = optionsdict # gets params from optionsdict speicified in creator so other functions can use it as part of self
         
 
@@ -122,6 +124,7 @@ class Disease(object):
         self.serial_interval_distribution = probtools.DiscreteGammaFull(self.serial_interval,4).densities
         ### end of parameter setting in disease
 
+        print(self.user_specified_options['_applied']) 
         result = 0
         for index1 in range(14):
             for index2 in range(14):
@@ -196,6 +199,13 @@ class Disease(object):
         self.recorded_info = {}
         self.completed_infections = 0
         self.average_transmissions = 0
+
+
+        #reset testing arrays for MSE
+        self.daily_tested = []
+        self.daily_tested_positive =[]
+
+
 
         for person in range(self.people):
             action = probtools.random_threshold({'removed' : self.initial_removed_fraction, 'infected' : self.initial_infected_fraction})
@@ -382,16 +392,42 @@ class Disease(object):
             self.recorded_info[key] = value
 
     def run(self,number):
+        json_dict = {} 
+        #load actual data from UM
+        with open('data.txt','r') as j_file:
+           json_dict = json.load(j_file) 
+
+
         self.recorder.record(self.recorded_info)
         for index in range(self.run_days):
             self.execute_main_step()
-            print('%04i-%03i  S %05i  I %05i  R %05i  Q %05i  CT %05i  TP %05i  R %5.3f' % (number+1,index+1,len(self.susceptible),len(self.infected),len(self.removed),len(self.quarantined),self.contact_traces_performed_today,self.tests_performed_today,self.average_transmissions))
+            self.daily_tested.append(self.recorded_info['tests_performed_today'])
+            self.daily_tested_positive.append(self.recorded_info['positive_tests_today'])
+#            print(self.day, '='*5, self.tests_performed_today, self.positive_tests_today)
+
+ #           print('%04i-%03i  S %05i  I %05i  R %05i  Q %05i  CT %05i  TP %05i  R %5.3f' % (number+1,index+1,len(self.susceptible),len(self.infected),len(self.removed),len(self.quarantined),self.contact_traces_performed_today,self.tests_performed_today,self.average_transmissions))
             self.recorder.record(self.recorded_info)
+        # MSE calculation for given run
+        print('='*40)
+        print(self.daily_tested)
+        mse =  mean_squared_error(json_dict['daily_testing'], self.daily_tested)       
+        print('MSE tests, ', mse) 
+        print('='*40)
+        print(self.daily_tested_positive)
+        mse =  mean_squared_error(json_dict['daily_positive'], self.daily_tested_positive)       
+        print('MSE tests positive, ', mse) 
+        print('='*40)
+
+        return mse
+
+        
     def multiple_runs(self,number):
         output_every = max(int(number / 4),1)
         for runno in range(number):
             try:
                 self.run(runno)
+
+
             except:
                 raise
             if runno != number-1:
@@ -401,24 +437,22 @@ class Disease(object):
 
 
 if __name__ == '__main__':
-
-    pandemic = Disease({}) # setting empty dict of values
-    
-    #adding names of items to csv dict
-    print('#'*40)
-    print(pandemic.user_specified_options['_applied'])
-    with open('param.txt', mode='w') as test_file:
-        json.dump(pandemic.user_specified_options['_applied'], test_file, indent=4,separators=(',', ': ')) 
-    print('#'*40)
-    pandemic.multiple_runs(2)
+    mse_arr = []
+    parameters =  pm.parameter_creator('param.txt') 
+    for i in range(5):
+        pandemic = Disease(parameters.randomized_sample())# setting empty dict of values
+        
+        #adding names of items to csv dict
+        mse_arr.append(pandemic.run(1))
+         
 
 
-    dc = gather.DataCollector(pandemic)
-    dc.register_report('Total Infected',{'susceptible' : False},lambda x: x[-1] - x[0])
-    dc.register_report('Peak Quarantined',{'quarantined' : True},lambda x : max(x))
-    dc.register_report('Total Student Infections',{'susceptible' : False, 'instructor' : False},lambda x: x[-1] - x[0])
-    dc.register_report('Total Instructor Infections',{'susceptible' : False, 'instructor' : True},lambda x: x[-1] - x[0])
-    result = dc.generate_csv()
+#    dc = gather.DataCollector(pandemic)
+#    dc.register_report('Total Infected',{'susceptible' : False},lambda x: x[-1] - x[0])
+#    dc.register_report('Peak Quarantined',{'quarantined' : True},lambda x : max(x))
+#    dc.register_report('Total Student Infections',{'susceptible' : False, 'instructor' : False},lambda x: x[-1] - x[0])
+#    dc.register_report('Total Instructor Infections',{'susceptible' : False, 'instructor' : True},lambda x: x[-1] - x[0])
+#    result = dc.generate_csv()
 
-    file = open('secondoutput.csv','w')
-    file.write(result.output())
+#    file = open('secondoutput.csv','w')
+#    file.write(result.output())

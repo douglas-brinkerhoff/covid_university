@@ -41,7 +41,6 @@ class parameter_creator:
                 self.dict_params[key] = sample_val
 
 
-        print(self.dict_params)
         return self.dict_params
 
     
@@ -53,5 +52,3 @@ class parameter_creator:
         self.get_params_dist()
 
 
-parameters = parameter_creator("param.txt")
-parameters.randomized_sample()
