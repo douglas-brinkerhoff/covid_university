@@ -244,7 +244,7 @@ class University(object):
             outdict = {'cutoff' : cutoff,'students' : students, 'seats_occupied' : total,
             'seats_per_student' : int(total/students*100)/100}
             repro_eff += broad_rate
-            print('Hi',broad_rate)
+            print(broad_rate)
             if not too_big:
                 outdict['R_e'] = repro_eff
             all_results.append(outdict)

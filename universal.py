@@ -18,7 +18,7 @@ import probtools
 
 
 
-students    = 20000
+students    = 7000
 instructors =  2500
 classes     =  3750
 departments =   120
