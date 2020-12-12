@@ -32,6 +32,8 @@ in_frnd_base_rate_hi = 0.18
 in_frnd_base_rate_low = in_frnd_base_rate_hi * 0.25
 in_dept_broad_base_rate = 0.00158
 
+days = 213 #days simulation runs MUST MATCH days reported in  data.csv
+
 
 #_poisson_computer = probtools.Poisson()
 #typical_R0 = 4.0

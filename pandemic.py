@@ -20,6 +20,14 @@ import universal
 import worldbuilder2 as worldbuilder
 import gather2 as gather
 
+import csv
+from pandas import read_csv
+from matplotlib import pyplot
+from sklearn.metrics import mean_squared_error
+
+# track MSE across multiple runs
+MSE_all_runs = []
+
 class FiFoQueue(object):
     # Adds item in a first-in, first-out queue
     # Items are not allowed to be on the list more than once at a time
@@ -229,7 +237,7 @@ class Disease(object):
         self.reset(False)
         self.scenario_name = self.get_parameter('scenario_name','')
         self.test = self.get_parameter('test',False)
-        self.run_days = self.get_parameter('run_days',100)
+        self.run_days = self.get_parameter('run_days',universal.days)
         self.filename = self.get_parameter('filename','(automatic)')
         if self.filename == '(automatic)':
             self.filename = str(int(time.time()))
@@ -452,12 +460,43 @@ class Disease(object):
         for key,value in self.registrar.get_attendance().items():
             self.recorded_info[key] = value
 
-    def run(self,number):
+    def run(self, number):
         self.recorder.record(self.recorded_info)
-        for index in range(self.run_days):
-            self.execute_main_step()
-            print('%04i-%03i  S %05i  I %05i  R %05i  Q %05i  CT %05i  TP %05i  R %5.3f' % (number+1,index+1,len(self.susceptible),len(self.infected),len(self.removed),len(self.quarantined),self.contact_traces_performed_today,self.tests_performed_today,self.average_transmissions))
-            self.recorder.record(self.recorded_info)
+
+        # create CSV containing time series data
+        run_number = number + 1
+        with open('timeSeries%s.csv' % run_number, 'w', newline='') as series:
+            writer = csv.writer(series)
+            writer.writerow(['Run', 'Day', 'Pos. Tests Today', 'Positivity Rate', 'Susceptible', 'Infected', 'Removed',
+                             'Quarantined', 'Contact Traces Today', 'Tests Today', 'Average Transmissions'])
+            for index in range(self.run_days):
+                self.execute_main_step()
+                # the print statement below came with the code and I have used this as a template to write csv data
+                # print('%04i-%03i  S %05i  I %05i  R %05i  Q %05i  CT %05i  TP %05i  R %5.3f' % (number+1,index+1,len(self.susceptible),len(self.infected),len(self.removed),len(self.quarantined),self.contact_traces_performed_today,self.tests_performed_today,self.average_transmissions))
+                # John's addition
+                writer.writerow([number + 1, index + 1, self.positive_tests_today,
+                                 '%8.6f' % (self.positive_tests_today / self.tests_performed_today),
+                                 len(self.susceptible), len(self.infected), len(self.removed), len(self.quarantined),
+                                 self.contact_traces_performed_today, self.tests_performed_today,
+                                 self.average_transmissions])
+                self.recorder.record(self.recorded_info)
+
+        # create time series charts using matplotlib based upon ABM data
+        # series = read_csv('timeSeries%s.csv' % run_number, index_col="Day", usecols=['Day','Pos. Tests Today'])
+        # series.plot()
+        # pyplot.show()
+
+        # calculate MSE across all trial runs
+        actual_data = read_csv('data.csv')
+        run_data = read_csv('timeSeries%s.csv' % run_number)
+        predicted_data = run_data['Pos. Tests Today']
+        MSE = mean_squared_error(actual_data, predicted_data)
+        print('MSE for run %i:' % run_number)
+        print('%4.2f' % MSE)
+        MSE_all_runs.append(MSE)
+        print('MSE average:')
+        print('%4.2f' % (sum(MSE_all_runs) / len(MSE_all_runs)))
+
     def multiple_runs(self,number):
         output_every = max(int(number / 4),1)
         for runno in range(number):
@@ -495,3 +534,5 @@ GNU General Public License for more details.''')
 
     file = open('mytestout.csv','w')
     file.write(result.output())
+
+    MSE_all_runs.clear()  # clear list containing MSE for each run of this trial
