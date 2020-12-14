@@ -89,8 +89,11 @@ class Disease(object):
         if must_raise:
             raise Exception(message)
     def __init__(self,optionsdict={}):
+        # for MSE
         self.daily_tested = []
         self.daily_tested_positive = []
+        # MSE end
+
         self.user_specified_options = optionsdict # gets params from optionsdict speicified in creator so other functions can use it as part of self
         
 
@@ -122,7 +125,8 @@ class Disease(object):
         #self.serial_interval_distribution = probtools._global_poisson._createPDF(self.serial_interval,1)
         self.incubation_picker = probtools.DiscreteGammaFull(self.incubation_period,4)
         self.serial_interval_distribution = probtools.DiscreteGammaFull(self.serial_interval,4).densities
-        ### end of parameter setting in disease
+       ### end of parameter setting in disease
+
 
         print(self.user_specified_options['_applied']) 
         result = 0
@@ -158,13 +162,13 @@ class Disease(object):
 
         self.reset(False)
         self.scenario_name = self.get_parameter('scenario_name','')
-        self.test = self.get_parameter('test',False)
-        self.run_days = self.get_parameter('run_days',100)
+        self.test = self.get_parameter('test',True)
+        self.run_days = self.get_parameter('run_days', 214)
         '''
         self.filename = self.get_parameter('filename','(automatic)')
         if self.filename == '(automatic)':
             self.filename = str(int(time.time()))
-            '''
+        '''
         self.parameter_audit()
         self.recorder.information = self.user_specified_options['_applied']
 
@@ -289,6 +293,7 @@ class Disease(object):
     def get_test_result(self,person):
         self.tests_performed_today += 1
         dice = random.random()
+        
         if person in self.infected and self.infection_detectable_day[person] <= self.day:
             if dice < self.daily_testing_false_negative:
                 return -1   # False Negative Test Result
@@ -315,22 +320,26 @@ class Disease(object):
         self.contact_traces_performed_today = 0
         self.positive_tests_today = 0
 
-        if self.quarantining:
-            for person in self.all_individuals:
-                if probtools.random_event(self.daily_testing_fraction):
-                    result = self.testing_queue.add(person,abort_if=self.quarantined)
-            for person in self.testing_queue:
-                test_result = self.get_test_result(person) # Need to change so that all tests are forced
-                if test_result > 0 and person not in self.quarantined:
-                    self.event('quarantined',person,message='Quarantined on Positive Test Result')
-                if test_result > 0 and self.contact_tracing:
+        #? might be cause of all 0's seems it relies on quarentining for testing
+        #if self.quarantining:
+        for person in self.all_individuals:
+            if probtools.random_event(self.daily_testing_fraction):
+                result = self.testing_queue.add(person,abort_if=self.quarantined)
+        # tests only run if quarantining is going!
+        for person in self.testing_queue:
+            test_result = self.get_test_result(person) # Need to change so that all tests are forced
+            self.testing_correctness.append(tuple((person in self.infected, test_result==1)))
+
+            if self.quarantining and test_result > 0 and person not in self.quarantined:
+                self.event('quarantined',person,message='Quarantined on Positive Test Result')
+            if test_result > 0 and self.contact_tracing:
+                self.contact_tracing_queue.add(person)
+        for person in self.symptomatic_infecteds:
+            if self.day == self.symptomatic_day[person]:
+                if self.quarantining and person not in self.quarantined:
+                    self.event('quarantined',person,message='Quarantined on Reported Symptoms')
+                if self.contact_tracing:
                     self.contact_tracing_queue.add(person)
-            for person in self.symptomatic_infecteds:
-                if self.day == self.symptomatic_day[person]:
-                    if person not in self.quarantined:
-                        self.event('quarantined',person,message='Quarantined on Reported Symptoms')
-                        if self.contact_tracing:
-                            self.contact_tracing_queue.add(person)
 
         to_be_released = {}
         for person in self.quarantined:
@@ -359,7 +368,7 @@ class Disease(object):
                             actions = probtools.random_threshold({'test' : self.contact_tracing_testing_rate, 'quarantine' : self.contact_tracing_quarantine_rate})
                             if 'test' in actions:
                                 self.testing_queue.add(found_individual,abort_if=self.quarantined)
-                            if 'quarantine' in actions and found_individual not in self.quarantined:
+                            if self.quarantining and 'quarantine' in actions and found_individual not in self.quarantined:
                                 self.event('quarantined',found_individual,message='Quarantined on Contact Trace')
 
 
@@ -403,21 +412,24 @@ class Disease(object):
             self.execute_main_step()
             self.daily_tested.append(self.recorded_info['tests_performed_today'])
             self.daily_tested_positive.append(self.recorded_info['positive_tests_today'])
-#            print(self.day, '='*5, self.tests_performed_today, self.positive_tests_today)
 
- #           print('%04i-%03i  S %05i  I %05i  R %05i  Q %05i  CT %05i  TP %05i  R %5.3f' % (number+1,index+1,len(self.susceptible),len(self.infected),len(self.removed),len(self.quarantined),self.contact_traces_performed_today,self.tests_performed_today,self.average_transmissions))
             self.recorder.record(self.recorded_info)
+
+
         # MSE calculation for given run
+
         print('='*40)
         print(self.daily_tested)
         mse =  mean_squared_error(json_dict['daily_testing'], self.daily_tested)       
         print('MSE tests, ', mse) 
+
         print('='*40)
         print(self.daily_tested_positive)
         mse =  mean_squared_error(json_dict['daily_positive'], self.daily_tested_positive)       
         print('MSE tests positive, ', mse) 
         print('='*40)
 
+       
         return mse
 
         
@@ -440,7 +452,7 @@ if __name__ == '__main__':
     mse_arr = []
     parameters =  pm.parameter_creator('param.txt') 
     for i in range(5):
-        pandemic = Disease(parameters.randomized_sample())# setting empty dict of values
+        pandemic = Disease(parameters.fully_randomized_sample())# setting empty dict of values
         
         #adding names of items to csv dict
         mse_arr.append(pandemic.run(1))
