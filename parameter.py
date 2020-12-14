@@ -14,6 +14,29 @@ class parameter_creator:
             json.dump(dictionary, json_file, sort_keys=True, indent=4, separators=(',', ': '))
 
     
+    def fully_randomized_sample(self):
+        for key, value in self.dict_dist.items():
+            if isinstance(value['mean'], (int, float)) and not isinstance(value['mean'], bool): # must clarify bool as bool is subclass of int
+                randomized =2*(stats.beta.rvs(2, 2, size=1)[0])
+                randomized *= value['mean'] 
+                
+
+                if isinstance(value['mean'], int):
+                    randomized = int(randomized)
+
+                # when fully randomized values can be illegal
+                if 'min_val' in value and randomized < value['min_val']:
+                    randomized = value['min_val']
+
+                self.dict_params[key] = randomized
+            if isinstance(value['mean'], bool):
+                random_percent = stats.beta.rvs(2,2,size=1)[0]
+                bern = stats.bernoulli(random_percent)
+
+                random_val = (0 != bern.rvs(size=1)[0])
+                self.dict_params[key] = random_val
+        return self.dict_params
+
     def randomized_sample(self):
         for key, value in self.dict_dist.items():
             if isinstance(value['mean'], (int, float)) and not isinstance(value['mean'], bool): # must clarify bool as bool is subclass of int
@@ -35,14 +58,15 @@ class parameter_creator:
 
             # if bool then sample bernoulli instead of normal
             if isinstance(value['mean'], bool):
-                bern = stats.bernoulli(value['std_dev'])
+                percent=value['std_dev'] if value['mean'] == False else 1-value['std_dev']  
+                bern = stats.bernoulli(percent)
 
                 sample_val = (0 != bern.rvs(size=1)[0])
                 self.dict_params[key] = sample_val
 
 
         return self.dict_params
-
+    
     
            
     def __init__(self, json_file):
