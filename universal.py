@@ -18,10 +18,10 @@ import probtools
 
 
 
-students    = 7000
-instructors =  2500
-classes     =  3750
-departments =   120
+students    = 10487
+instructors =  880
+classes     =  2063
+departments =   58
 meeting_schedules = [[1,3],[1,3],[0,2,4],[0,2,4],[0,2]]
 
 class_cohorts = 8

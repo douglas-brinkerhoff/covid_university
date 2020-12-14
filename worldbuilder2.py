@@ -116,14 +116,14 @@ class University(object):
         self.absent = {}
 
         self.class_sizes = BinObject()
-        self.class_sizes.add_bin(200,800,0.005)
-        self.class_sizes.add_bin(100,199,0.015)
-        self.class_sizes.add_bin(50,99,0.08)
-        self.class_sizes.add_bin(40,49,0.03)
-        self.class_sizes.add_bin(30,39,0.05) ##
-        self.class_sizes.add_bin(20,29,0.14)
-        self.class_sizes.add_bin(10,19,0.41) ##
-        self.class_sizes.add_bin(2,9,0.27)
+        self.class_sizes.add_bin(200,800,0.001)
+        self.class_sizes.add_bin(100,199,0.016)
+        self.class_sizes.add_bin(50,99,0.048)
+        self.class_sizes.add_bin(40,49,0.042)
+        self.class_sizes.add_bin(30,39,0.082) ##
+        self.class_sizes.add_bin(20,29,0.169)
+        self.class_sizes.add_bin(10,19,0.325) ##
+        self.class_sizes.add_bin(2,9,0.317)
 
         self.contact_factor = 1.0
         self._one_time_work()
