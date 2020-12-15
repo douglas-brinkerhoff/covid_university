@@ -529,7 +529,7 @@ class Disease(object):
         # pyplot.legend()
         # pyplot.xlabel("Day")
         # pyplot.ylabel("Number of  Tests Administered")
-        # pyplot.title("Predicting Number of  COVID19 Tests per Day at UMT")
+        # pyplot.title("Predicting Number of COVID19 Tests per Day at UMT")
         # pyplot.show()
 
 
@@ -552,7 +552,7 @@ class Disease(object):
         print('Difference on positive tests for run %i:' % run_number)
         print('%4.2f' % diff_pos_tests)
         diff_pos_tests_all_runs.append(diff_pos_tests)
-        print('Difference  on total tests for run %i:' % run_number)
+        print('Difference on total tests for run %i:' % run_number)
         print('%4.2f' % diff_tot_tests)
         diff_tot_tests_all_runs.append(diff_tot_tests)
 

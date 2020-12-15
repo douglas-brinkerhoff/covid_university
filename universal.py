@@ -36,13 +36,13 @@ daily_outside_cases = [1,0,0,0] #this needs to be a vector the way the code is w
 contact_tracing_testing_rate = 1.0
 contact_tracing_quarantine_rate = 1.0
 contact_tracing_days = 2
-daily_testing_fraction = 0.03
+daily_testing_fraction = 0.00
 fpr = 0.001 #false positive rate of daily testing
 fnr = 0.03 #false negative rate of daily testing
 incubation_picker = probtools.DiscreteGammaFull(incubation_period,4) #discrete Gamma for generating incubation period for each case
 serial_interval_distribution = probtools.DiscreteGammaFull(serial_interval,4).densities #infectiousness is a function of time since infection (discrete Gamma)
 
-days = 213 #days simulation runs MUST MATCH days reported in  data_positives.csv
+days = 135 #days simulation runs MUST MATCH days reported in data_positives.csv and data_total_tests.csv
 
 #########WORLD PARAMETERS#############
 students    = 10487 #on+off campus; I'm pretty sure this includes Missoula College from the dashboard I've seen
