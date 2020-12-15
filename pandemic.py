@@ -21,12 +21,13 @@ import worldbuilder2 as worldbuilder
 import gather2 as gather
 
 import csv
-from pandas import read_csv
+import pandas
 from matplotlib import pyplot
-from sklearn.metrics import mean_squared_error
 
-# track MSE across multiple runs
-MSE_all_runs = []
+# track MSE across multiple runs on target variables
+diff_pos_tests_all_runs = []
+diff_tot_tests_all_runs = []
+
 
 class FiFoQueue(object):
     # Adds item in a first-in, first-out queue
@@ -481,21 +482,84 @@ class Disease(object):
                                  self.average_transmissions])
                 self.recorder.record(self.recorded_info)
 
-        # create time series charts using matplotlib based upon ABM data
-        # series = read_csv('timeSeries%s.csv' % run_number, index_col="Day", usecols=['Day','Pos. Tests Today'])
-        # series.plot()
+        # create time series charts using matplotlib
+
+        # NON CUMULATIVE CHARTS:
+
+        # POSITIVE TESTS
+        # model_series = read_csv('timeSeries%s.csv' % run_number, index_col="Day", usecols=['Day','Pos. Tests Today'])
+        # actual_series = read_csv('data_positives.csv')
+        # pyplot.plot(model_series, label = 'Predicted')
+        # pyplot.plot(actual_series, label = 'Actual')
+        # pyplot.legend()
+        # pyplot.xlabel("Day")
+        # pyplot.ylabel("Number of Positive Tests")
+        # pyplot.title("Predicting Number of Positive COVID19 Tests per Day at UMT")
         # pyplot.show()
 
-        # calculate MSE across all trial runs
-        actual_data = read_csv('data.csv')
-        run_data = read_csv('timeSeries%s.csv' % run_number)
-        predicted_data = run_data['Pos. Tests Today']
-        MSE = mean_squared_error(actual_data, predicted_data)
-        print('MSE for run %i:' % run_number)
-        print('%4.2f' % MSE)
-        MSE_all_runs.append(MSE)
-        print('MSE average:')
-        print('%4.2f' % (sum(MSE_all_runs) / len(MSE_all_runs)))
+        # TOTAL TESTS
+        # model_series = read_csv('timeSeries%s.csv' % run_number, index_col="Day", usecols=['Day', 'Tests Today'])
+        # actual_series = read_csv('data_total_tests.csv')
+        # pyplot.plot(model_series, label='Predicted')
+        # pyplot.plot(actual_series, label='Actual')
+        # pyplot.legend()
+        # pyplot.xlabel("Day")
+        # pyplot.ylabel("Number of  Tests Administered")
+        # pyplot.title("Predicting Number of  COVID19 Tests per Day at UMT")
+        # pyplot.show()
+
+        #  CUMULATIVE CHARTS:
+
+        # POSITIVE TESTS
+        # model_series = read_csv('timeSeries%s.csv' % run_number, index_col="Day", usecols=['Day', 'Pos. Tests Today']).cumsum()
+        # actual_series = read_csv('data_positives.csv').cumsum()
+        # pyplot.plot(model_series, label = 'Predicted')
+        # pyplot.plot(actual_series, label = 'Actual')
+        # pyplot.legend()
+        # pyplot.xlabel("Day")
+        # pyplot.ylabel("Number of Positive Tests")
+        # pyplot.title("Predicting Number of Positive COVID19 Tests per Day at UMT")
+        # pyplot.show()
+
+        # TOTAL TESTS
+        # model_series = read_csv('timeSeries%s.csv' % run_number, index_col="Day", usecols=['Day', 'Tests Today']).cumsum()
+        # actual_series = read_csv('data_total_tests.csv').cumsum()
+        # pyplot.plot(model_series, label='Predicted')
+        # pyplot.plot(actual_series, label='Actual')
+        # pyplot.legend()
+        # pyplot.xlabel("Day")
+        # pyplot.ylabel("Number of  Tests Administered")
+        # pyplot.title("Predicting Number of  COVID19 Tests per Day at UMT")
+        # pyplot.show()
+
+
+        # calculate difference between actual and predicted  across all trial runs for positive tests amd total tests
+        actual_data_pos_tests = pandas.read_csv('data_positives.csv')
+        sum_actual_pos_tests = actual_data_pos_tests.sum()
+        actual_data_tot_tests = pandas.read_csv('data_total_tests.csv')
+        sum_actual_tot_tests = actual_data_tot_tests.sum()
+
+        run_data = pandas.read_csv('timeSeries%s.csv' % run_number)
+
+        predicted_data_pos_tests = run_data['Pos. Tests Today']
+        sum_predicted_pos_tests = predicted_data_pos_tests.sum()
+        predicted_data_tot_tests = run_data['Tests Today']
+        sum_predicted_tot_tests = predicted_data_tot_tests.sum()
+
+        diff_pos_tests = abs(sum_predicted_pos_tests - sum_actual_pos_tests)
+        diff_tot_tests = abs(sum_predicted_tot_tests - sum_actual_tot_tests)
+
+        print('Difference on positive tests for run %i:' % run_number)
+        print('%4.2f' % diff_pos_tests)
+        diff_pos_tests_all_runs.append(diff_pos_tests)
+        print('Difference  on total tests for run %i:' % run_number)
+        print('%4.2f' % diff_tot_tests)
+        diff_tot_tests_all_runs.append(diff_tot_tests)
+
+        print('Difference averaged for positive tests:')
+        print('%4.2f' % (sum(diff_pos_tests_all_runs) / len(diff_pos_tests_all_runs)))
+        print('Difference averaged for total tests:')
+        print('%4.2f' % (sum(diff_tot_tests_all_runs) / len(diff_tot_tests_all_runs)))
 
     def multiple_runs(self,number):
         output_every = max(int(number / 4),1)
@@ -535,4 +599,5 @@ GNU General Public License for more details.''')
     file = open('mytestout.csv','w')
     file.write(result.output())
 
-    MSE_all_runs.clear()  # clear list containing MSE for each run of this trial
+    diff_pos_tests_all_runs.clear()  # clear list containing MSE for each run of this trial
+    diff_tot_tests_all_runs.clear()

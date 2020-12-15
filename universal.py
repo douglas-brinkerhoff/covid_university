@@ -42,41 +42,44 @@ fnr = 0.03 #false negative rate of daily testing
 incubation_picker = probtools.DiscreteGammaFull(incubation_period,4) #discrete Gamma for generating incubation period for each case
 serial_interval_distribution = probtools.DiscreteGammaFull(serial_interval,4).densities #infectiousness is a function of time since infection (discrete Gamma)
 
-days = 213 #days simulation runs MUST MATCH days reported in  data.csv
+days = 213 #days simulation runs MUST MATCH days reported in  data_positives.csv
 
 #########WORLD PARAMETERS#############
-students    = 20000
-instructors =  2500
-classes     =  3750
-departments =   120
-meeting_schedules = [[1,3],[1,3],[0,2,4],[0,2,4],[0,2]]
+students    = 10487 #on+off campus; I'm pretty sure this includes Missoula College from the dashboard I've seen
+instructors =  880 #includes about 100 TAs and 630 faculty
+classes     =  2063 #this is inflated; there are co-convening classes and 105 single person classes I haven't accounted for
+departments =   58       #58 departments, but 12 colleges; don't know if this makes a difference
+meeting_schedules = [[1,3],[1,3],[0,2,4],[0,2,4],[0,2]] #same
 
-class_cohorts = 8
+class_cohorts = 8   #same
 
-maximum_section_size = 150 #for each section
-friendship_contacts = 4.0 #thes following contribute to Poisson process for contact (see paper appendix)
+maximum_section_size = 150 #STILL UNSURE ABOUT THIS; I have TA'd for the largest class at UM and the largest section size is 30 so that the TA's only have that many
+
+friendship_contacts = 4.0 #the following contribute to Poisson process for contact (see paper appendix); have not changed this thus far
 academic_contacts = 4.0
 broad_social_contacts = 2.0
 department_environmental_contacts = 4.0
 broad_environmental_contacts = 4.0
 residential_neighbors=1.0
 
-online_transition = 30
+online_transition = 95 #largest face-to-face class is a chemistry course; is this right?
 residential_rate = 1
 social_distancing = True
 
 crowd_reduction_factor = 1.0
 activity_reduction_factor = 1.0
-recitation_rules = [50,20,80] #Classes over 50 have recitations of 20, with 80 student max PER TA
+recitation_rules = [50,20,80] #Classes over 50 have recitations of 20, with 80 student max PER TA; this could probably be changed to [50,30,90] from experience
+
 #class percentages
-class_size_200 = 0.0075 #percentage of classes over the size of 200 people
-class_size_100 = 0.0225 #percentage of classes from 100-199
-class_size_50 = 0.07 #percentage of classes from 50-99
-class_size_40 = 0.04 #percentage of classes from 40-49
-class_size_30 = 0.1 #percentage of classes from 30-39
-class_size_20 = 0.28 #percentage of classes from 20-29
-class_size_10 = 0.31 #percentage of classes from 10-19
-class_size_2 = 0.18 #percentage of classes from 2-9
+class_size_200 = 0.001 #percentage of classes over the size of 200 people
+class_size_100 = 0.016 #percentage of classes from 100-199
+class_size_50 = 0.048 #percentage of classes from 50-99
+class_size_40 = 0.042 #percentage of classes from 40-49
+class_size_30 = 0.082 #percentage of classes from 30-39
+class_size_20 = 0.169 #percentage of classes from 20-29
+class_size_10 = 0.325 #percentage of classes from 10-19
+class_size_2 = 0.266 #percentage of classes from 2-9
+#class_size_1 = 0.051 #classes of 1 person; these should probably be combined with class_size_2
 
 in_class_base_rate = 0.0145 #these are used in worldbuilder2 to define contact rates; don't mess with
 in_dept_base_rate =  0.116
