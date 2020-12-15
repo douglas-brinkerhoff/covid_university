@@ -328,7 +328,6 @@ class Disease(object):
         # tests only run if quarantining is going!
         for person in self.testing_queue:
             test_result = self.get_test_result(person) # Need to change so that all tests are forced
-            self.testing_correctness.append(tuple((person in self.infected, test_result==1)))
 
             if self.quarantining and test_result > 0 and person not in self.quarantined:
                 self.event('quarantined',person,message='Quarantined on Positive Test Result')
@@ -453,6 +452,11 @@ if __name__ == '__main__':
     parameters =  pm.parameter_creator('param.txt') 
     for i in range(5):
         pandemic = Disease(parameters.fully_randomized_sample())# setting empty dict of values
+        
+        #adding names of items to csv dict
+        mse_arr.append(pandemic.run(1))
+    for i in range(5):
+        pandemic = Disease(parameters.randomized_sample())# setting empty dict of values
         
         #adding names of items to csv dict
         mse_arr.append(pandemic.run(1))
