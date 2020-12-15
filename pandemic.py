@@ -487,8 +487,8 @@ class Disease(object):
         # NON CUMULATIVE CHARTS:
 
         # POSITIVE TESTS
-        # model_series = read_csv('timeSeries%s.csv' % run_number, index_col="Day", usecols=['Day','Pos. Tests Today'])
-        # actual_series = read_csv('data_positives.csv')
+        # model_series = pandas.read_csv('timeSeries%s.csv' % run_number, index_col="Day", usecols=['Day','Pos. Tests Today'])
+        # actual_series = pandas.read_csv('data_positives.csv')
         # pyplot.plot(model_series, label = 'Predicted')
         # pyplot.plot(actual_series, label = 'Actual')
         # pyplot.legend()
@@ -498,8 +498,8 @@ class Disease(object):
         # pyplot.show()
 
         # TOTAL TESTS
-        # model_series = read_csv('timeSeries%s.csv' % run_number, index_col="Day", usecols=['Day', 'Tests Today'])
-        # actual_series = read_csv('data_total_tests.csv')
+        # model_series = pandas.read_csv('timeSeries%s.csv' % run_number, index_col="Day", usecols=['Day', 'Tests Today'])
+        # actual_series = pandas.read_csv('data_total_tests.csv')
         # pyplot.plot(model_series, label='Predicted')
         # pyplot.plot(actual_series, label='Actual')
         # pyplot.legend()
@@ -511,8 +511,8 @@ class Disease(object):
         #  CUMULATIVE CHARTS:
 
         # POSITIVE TESTS
-        # model_series = read_csv('timeSeries%s.csv' % run_number, index_col="Day", usecols=['Day', 'Pos. Tests Today']).cumsum()
-        # actual_series = read_csv('data_positives.csv').cumsum()
+        # model_series = pandas.read_csv('timeSeries%s.csv' % run_number, index_col="Day", usecols=['Day', 'Pos. Tests Today']).cumsum()
+        # actual_series = pandas.read_csv('data_positives.csv').cumsum()
         # pyplot.plot(model_series, label = 'Predicted')
         # pyplot.plot(actual_series, label = 'Actual')
         # pyplot.legend()
@@ -522,8 +522,8 @@ class Disease(object):
         # pyplot.show()
 
         # TOTAL TESTS
-        # model_series = read_csv('timeSeries%s.csv' % run_number, index_col="Day", usecols=['Day', 'Tests Today']).cumsum()
-        # actual_series = read_csv('data_total_tests.csv').cumsum()
+        # model_series = pandas.read_csv('timeSeries%s.csv' % run_number, index_col="Day", usecols=['Day', 'Tests Today']).cumsum()
+        # actual_series = pandas.read_csv('data_total_tests.csv').cumsum()
         # pyplot.plot(model_series, label='Predicted')
         # pyplot.plot(actual_series, label='Actual')
         # pyplot.legend()
