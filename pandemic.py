@@ -14,6 +14,7 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import parameter as pm
 import json
+import analysis
 import time,os,sys
 import probtools,random
 import universal
@@ -90,8 +91,8 @@ class Disease(object):
             raise Exception(message)
     def __init__(self,optionsdict={}):
         # for MSE
-        self.daily_tested = []
-        self.daily_tested_positive = []
+        self.tests_performed_total = 0
+        self.positive_tests_total = 0
         # MSE end
 
         self.user_specified_options = optionsdict # gets params from optionsdict speicified in creator so other functions can use it as part of self
@@ -129,6 +130,9 @@ class Disease(object):
 
 
         print(self.user_specified_options['_applied']) 
+
+
+
         result = 0
         for index1 in range(14):
             for index2 in range(14):
@@ -163,7 +167,7 @@ class Disease(object):
         self.reset(False)
         self.scenario_name = self.get_parameter('scenario_name','')
         self.test = self.get_parameter('test',True)
-        self.run_days = self.get_parameter('run_days', 214)
+        self.run_days = self.get_parameter('run_days', 127)
         '''
         self.filename = self.get_parameter('filename','(automatic)')
         if self.filename == '(automatic)':
@@ -291,17 +295,17 @@ class Disease(object):
             self.recorded_info[self.person_state[person]] += 1
 
     def get_test_result(self,person):
-        self.tests_performed_today += 1
+        self.tests_performed_total += 1
         dice = random.random()
         
         if person in self.infected and self.infection_detectable_day[person] <= self.day:
             if dice < self.daily_testing_false_negative:
                 return -1   # False Negative Test Result
-            self.positive_tests_today += 1
+            self.positive_tests_total += 1
             return 1        # True Positive Test Result
         # Person is either not infected or not yet detectably infected
         if dice < self.daily_testing_false_positive:
-            self.positive_tests_today += 1
+            self.positive_tests_total += 1
             return 1 # False Positive Result
         return -1
     def transmission_success(self,person,contact_strength):
@@ -316,9 +320,9 @@ class Disease(object):
     def execute_main_step(self):
         self.day += 1
         self.registrar.update_query_system()
-        self.tests_performed_today = 0
+#        self.tests_performed_total = 0
         self.contact_traces_performed_today = 0
-        self.positive_tests_today = 0
+#        self.positive_tests_total = 0
 
         #? might be cause of all 0's seems it relies on quarentining for testing
         #if self.quarantining:
@@ -391,53 +395,29 @@ class Disease(object):
             if person is not None and person not in self.quarantined:
                 self.event('infected',person,infected_by=None,message='infected by outside source')
 
-        self.recorded_info['tests_performed_today'] = self.tests_performed_today
+        self.recorded_info['tests_performed_total'] = self.tests_performed_total
         self.recorded_info['contact_traces_performed_today'] = self.contact_traces_performed_today
-        self.recorded_info['positive_tests_today'] = self.positive_tests_today
+        self.recorded_info['positive_tests_total'] = self.positive_tests_total
         self.recorded_info['day'] = self.day
         self.recorded_info['R'] = self.average_transmissions
         for key,value in self.registrar.get_attendance().items():
             self.recorded_info[key] = value
 
-    def run(self,number):
-        json_dict = {} 
-        #load actual data from UM
-        with open('data.txt','r') as j_file:
-           json_dict = json.load(j_file) 
-
-
+    def run(self,number): 
         self.recorder.record(self.recorded_info)
+
         for index in range(self.run_days):
             self.execute_main_step()
-            self.daily_tested.append(self.recorded_info['tests_performed_today'])
-            self.daily_tested_positive.append(self.recorded_info['positive_tests_today'])
 
             self.recorder.record(self.recorded_info)
 
-
-        # MSE calculation for given run
-
-        print('='*40)
-        print(self.daily_tested)
-        mse =  mean_squared_error(json_dict['daily_testing'], self.daily_tested)       
-        print('MSE tests, ', mse) 
-
-        print('='*40)
-        print(self.daily_tested_positive)
-        mse =  mean_squared_error(json_dict['daily_positive'], self.daily_tested_positive)       
-        print('MSE tests positive, ', mse) 
-        print('='*40)
-
        
-        return mse
-
         
-    def multiple_runs(self,number):
+    def multiple_runs(self,number, analyzer):
         output_every = max(int(number / 4),1)
         for runno in range(number):
             try:
                 self.run(runno)
-
 
             except:
                 raise
@@ -445,30 +425,52 @@ class Disease(object):
                 self.reset()
         self.recorder.reset(True)
 
+        analyzer.record(self.recorder.all_records)
+
+        json_dict = {} 
+        #load actual data from UM
+        with open('data.txt','r') as j_file:
+           json_dict = json.load(j_file) 
+        
+        print('='*40)
+        print(self.recorder.all_records[0]['tests_performed_total'])
+        total_tests = []
+        for index, val in enumerate(json_dict['daily_testing'][86:]):
+            summed = val
+            if index != 0:
+               summed+=total_tests[index-1] 
+            total_tests.append(summed) 
+        print('*'*40)
+        print(total_tests)
+        mse =  mean_squared_error(total_tests,self.recorder.all_records[0]['tests_performed_total'])
+        print('MSE tests, ', mse) 
+
+        print('='*40)
+        print(self.recorder.all_records[0]['positive_tests_total'])
+        total_positive = []
+        for index, val in enumerate(json_dict['daily_positive'][86:]):
+            summed = val
+            if index != 0:
+               summed+=total_positive[index-1] 
+            total_positive.append(summed) 
+        print('*'*40)
+        print(total_positive)
+        mse =  mean_squared_error(total_positive,self.recorder.all_records[0]['positive_tests_total']) 
+        print('MSE tests positive, ', mse) 
+        print('='*40)
+
+
 
 
 if __name__ == '__main__':
     mse_arr = []
     parameters =  pm.parameter_creator('param.txt') 
-    for i in range(5):
-        pandemic = Disease(parameters.fully_randomized_sample())# setting empty dict of values
-        
-        #adding names of items to csv dict
-        mse_arr.append(pandemic.run(1))
-    for i in range(5):
+    for i in range(1):
         pandemic = Disease(parameters.randomized_sample())# setting empty dict of values
+        an = analysis.analyzer(['tests_performed_total'])
+        pandemic.multiple_runs(2,an)
+
         
-        #adding names of items to csv dict
-        mse_arr.append(pandemic.run(1))
-         
 
 
-#    dc = gather.DataCollector(pandemic)
-#    dc.register_report('Total Infected',{'susceptible' : False},lambda x: x[-1] - x[0])
-#    dc.register_report('Peak Quarantined',{'quarantined' : True},lambda x : max(x))
-#    dc.register_report('Total Student Infections',{'susceptible' : False, 'instructor' : False},lambda x: x[-1] - x[0])
-#    dc.register_report('Total Instructor Infections',{'susceptible' : False, 'instructor' : True},lambda x: x[-1] - x[0])
-#    result = dc.generate_csv()
-
-#    file = open('secondoutput.csv','w')
-#    file.write(result.output())
+    
