@@ -42,7 +42,7 @@ fnr = 0.03 #false negative rate of daily testing
 incubation_picker = probtools.DiscreteGammaFull(incubation_period,4) #discrete Gamma for generating incubation period for each case
 serial_interval_distribution = probtools.DiscreteGammaFull(serial_interval,4).densities #infectiousness is a function of time since infection (discrete Gamma)
 
-days = 135 #days simulation runs MUST MATCH days reported in data_positives.csv and data_total_tests.csv
+days = 128 #days simulation runs MUST MATCH days reported in data_positives.csv and data_total_tests.csv
 
 #########WORLD PARAMETERS#############
 students    = 10487 #on+off campus; I'm pretty sure this includes Missoula College from the dashboard I've seen

@@ -532,6 +532,17 @@ class Disease(object):
         # pyplot.title("Predicting Number of COVID19 Tests per Day at UMT")
         # pyplot.show()
 
+        # TOTAL ACTIVE CASES
+        model_series = pandas.read_csv('timeSeries%s.csv' % run_number, index_col="Day", usecols=['Day', 'Infected'])
+        actual_series = pandas.read_csv('data_actives.csv')
+        pyplot.plot(model_series, label='Predicted')
+        pyplot.plot(actual_series, label='Actual')
+        pyplot.legend()
+        pyplot.xlabel("Day")
+        pyplot.ylabel("Active Cases")
+        pyplot.title("Daily Number of Active COVID-19 Cases at UMT")
+        pyplot.show()
+
 
         # calculate difference between actual and predicted  across all trial runs for positive tests amd total tests
         actual_data_pos_tests = pandas.read_csv('data_positives.csv')
