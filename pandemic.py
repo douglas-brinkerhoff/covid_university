@@ -20,7 +20,6 @@ import probtools,random
 import universal
 import worldbuilder2 as worldbuilder
 import gather2 as gather
-from sklearn.metrics import mean_squared_error
 
 
 class FiFoQueue(object):
@@ -210,8 +209,9 @@ class Disease(object):
 
 
         #reset testing arrays for MSE
-        self.daily_tested = []
-        self.daily_tested_positive =[]
+
+        self.tests_performed_total = 0
+        self.positive_tests_total = 0
 
 
 
@@ -425,8 +425,13 @@ class Disease(object):
                 self.reset()
         self.recorder.reset(True)
 
+        # analyzer getting data from all runs
         analyzer.record(self.recorder.all_records)
+        analyzer.parameters = self.recorder.information 
+        analyzer.find_means()
 
+        analyzer.mse()
+        '''
         json_dict = {} 
         #load actual data from UM
         with open('data.txt','r') as j_file:
@@ -458,7 +463,8 @@ class Disease(object):
         mse =  mean_squared_error(total_positive,self.recorder.all_records[0]['positive_tests_total']) 
         print('MSE tests positive, ', mse) 
         print('='*40)
-
+        '''
+        analyzer.show_values()
 
 
 
@@ -467,8 +473,8 @@ if __name__ == '__main__':
     parameters =  pm.parameter_creator('param.txt') 
     for i in range(1):
         pandemic = Disease(parameters.randomized_sample())# setting empty dict of values
-        an = analysis.analyzer(['tests_performed_total'])
-        pandemic.multiple_runs(2,an)
+        an = analysis.analyzer(['tests_performed_total', 'positive_tests_total'])
+        pandemic.multiple_runs(3,an)
 
         
 
