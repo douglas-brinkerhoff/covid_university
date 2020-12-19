@@ -16,6 +16,7 @@ class parameter_creator:
     
     def fully_randomized_sample(self):
         for key, value in self.dict_dist.items():
+            
             if isinstance(value['mean'], (int, float)) and not isinstance(value['mean'], bool): # must clarify bool as bool is subclass of int
                 randomized =2*(stats.beta.rvs(2, 2, size=1)[0])
                 randomized *= value['mean'] 
@@ -35,6 +36,9 @@ class parameter_creator:
 
                 random_val = (0 != bern.rvs(size=1)[0])
                 self.dict_params[key] = random_val
+        self.dict_params['scenario_name'] = 'trail_'+str(self.run_num)
+
+        self.run_num += 1
         return self.dict_params
 
     def randomized_sample(self):
@@ -64,12 +68,14 @@ class parameter_creator:
                 sample_val = (0 != bern.rvs(size=1)[0])
                 self.dict_params[key] = sample_val
 
-
+        self.dict_params['scenario_name'] = 'trail_'+str(self.run_num) 
+        self.run_num += 1
         return self.dict_params
     
     
            
     def __init__(self, json_file):
+        self.run_num = 1
         self.json_file = json_file
         self.dict_params = {}
         self.dict_dist = {}

@@ -28,6 +28,8 @@ class analyzer:
             totals = np.array(totals)
             self.values[key]['all_runs'] = totals 
     def show_values(self):
+        print('^' * 50)
+        print(self.parameters)
         for key in self.values.keys():
             
             print('$'*40)
