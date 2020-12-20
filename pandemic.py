@@ -427,43 +427,11 @@ class Disease(object):
 
         # analyzer getting data from all runs
         analyzer.record(self.recorder.all_records)
+        # getting parameter items
         analyzer.parameters = self.recorder.information 
         analyzer.find_means()
 
         analyzer.mse()
-        '''
-        json_dict = {} 
-        #load actual data from UM
-        with open('data.txt','r') as j_file:
-           json_dict = json.load(j_file) 
-        
-        print('='*40)
-        print(self.recorder.all_records[0]['tests_performed_total'])
-        total_tests = []
-        for index, val in enumerate(json_dict['daily_testing'][86:]):
-            summed = val
-            if index != 0:
-               summed+=total_tests[index-1] 
-            total_tests.append(summed) 
-        print('*'*40)
-        print(total_tests)
-        mse =  mean_squared_error(total_tests,self.recorder.all_records[0]['tests_performed_total'])
-        print('MSE tests, ', mse) 
-
-        print('='*40)
-        print(self.recorder.all_records[0]['positive_tests_total'])
-        total_positive = []
-        for index, val in enumerate(json_dict['daily_positive'][86:]):
-            summed = val
-            if index != 0:
-               summed+=total_positive[index-1] 
-            total_positive.append(summed) 
-        print('*'*40)
-        print(total_positive)
-        mse =  mean_squared_error(total_positive,self.recorder.all_records[0]['positive_tests_total']) 
-        print('MSE tests positive, ', mse) 
-        print('='*40)
-        '''
         analyzer.show_values()
 
 
