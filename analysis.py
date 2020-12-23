@@ -6,6 +6,8 @@ import h5py
 
 class analyzer:
     def __init__(self,keys): 
+        #init and save hd writer
+        self.writer = h5writer('output.hdf5')
         '''
         format is as such: list['keys'] -> dictionary{'all_runs'# raw run data,
         'mean'#mean of all run values for given day, 
@@ -13,12 +15,10 @@ class analyzer:
         '''
         self.values = {}   
 
-        #crutch for linking names of data with dict
-        self.data_names = [('daily_positive','positive_tests_total'), ('daily_testing', 'tests_performed_total')]
-        # end crutch will remove
 
         # parameters set in pandemic during init
-        parameters = None 
+        self.parameters = None 
+
 
         # initialize empty dictionary for all keys
         for key in keys:
@@ -35,6 +35,10 @@ class analyzer:
             totals = np.array(totals)
             self.values[key]['all_runs'] = totals 
 
+        # on record calculate that runs mean and mse
+        self.find_means()
+        self.mse()
+        self.store()
 
     def show_values(self):
         print('^' * 50)
@@ -58,22 +62,14 @@ class analyzer:
         with open('data.txt','r') as j_file:
            json_dict = json.load(j_file) 
         ## end writer
-        for data_name, key in self.data_names:
-            cummulative = []
-            #get cummulative for given day in actual data
-            for index, val in enumerate(json_dict[data_name][86:]):
-                summed = val
-                if index != 0:
-                   summed+=cummulative[index-1] 
-                cummulative.append(summed) 
+           for key in self.values.keys():             
 
-            
-            mse = mean_squared_error(cummulative, self.values[key]['mean']) 
-            self.values[key]['mse'] = mse
+               mse = mean_squared_error(json_dict[key], self.values[key]['mean']) 
+               self.values[key]['mse'] = mse
     
-    def store(self, file_name):
+    def store(self):
         # storing of the parameters for reset?
-        
+        self.writer.store_analysis(self)         
 
 class h5writer:
     def __init__(self, filename):
@@ -92,6 +88,8 @@ class h5writer:
             with h5py.File(self.file, 'r') as f:
                 # if file exists get latest generation value
                 self.current_gen = list(f.keys())[-1]
+
+            self.create_new_gen()
 
 
     # new group in the file
@@ -113,30 +111,33 @@ class h5writer:
             # create new group for current run, named by scenario name
             f_scenario = f_gen.create_group(analysis.parameters['scenario_name'])
             # convert dict to tuple list for np.array to use
-            tuple_list = list(analysis.parameters.items())
-            f_scenario.create_dataset('parameters', data=np.array(tuple_list))
+            tuple_list = json.dumps(analysis.parameters)
+            f_scenario.create_dataset('parameters', data=np.array(tuple_list, dtype='S'))
             
             f_data = f_scenario.create_group('data')
+
             for key in analysis.values.keys():
+                #create folder for specific key
+                f_specific = f_data.create_group(key)
                 # add the key and mse pair to mse_list for later storing
                 mse_list.append((key, analysis.values[key]['mse']))
 
-                # storing all runs dataset /gen/scenario/data/all_runs
-                f_data.create_dataset('all_runs', data= analysis.values[key]['all_runs'])
+                # storing all runs dataset /gen/scenario/data/$key/all_runs
+                f_specific.create_dataset('all_runs', data= analysis.values[key]['all_runs'])
 
-                #storing mean dataset /gen/scenario/data/mean
-                f_data.create_dataset('mean', data=analysis.values[key]['mean'])
+                #storing mean dataset /gen/scenario/data/$key/mean
+                f_specific.create_dataset('mean', data=analysis.values[key]['mean'])
             
             # add the mse_list /gen/scenario/mse
-            f_scenario.create_dataset('mse', data=np.array(mse_list))
+            f_scenario.create_dataset('mse', data=np.array(mse_list ,dtype='S'))
 
 # for testing
 if __name__ == '__main__':
-    writer = h5writer('test.hdf5')
-    writer.create_hdf5()
-    print(writer.current_gen)
-    f = h5py.File('test.hdf5', 'r+')
+    f = h5py.File('output.hdf5', 'r')
     print(list(f.keys()))
-    test = f['gen_1']['test'] 
-    print(test.name)
+    gen1 = f['gen_1']['trail_1']
+    print(list(gen1.keys()))
+    print(gen1['parameters'][...])
+    print(gen1['mse'][...])
+    
     f.close()

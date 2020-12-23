@@ -128,7 +128,7 @@ class Disease(object):
        ### end of parameter setting in disease
 
 
-        print(self.user_specified_options['_applied']) 
+        #print(self.user_specified_options['_applied']) 
 
 
 
@@ -425,13 +425,12 @@ class Disease(object):
                 self.reset()
         self.recorder.reset(True)
 
+        # parameters must be set before record or else crash because it will try and read
+        analyzer.parameters = self.recorder.information 
+
         # analyzer getting data from all runs
         analyzer.record(self.recorder.all_records)
         # getting parameter items
-        analyzer.parameters = self.recorder.information 
-        analyzer.find_means()
-
-        analyzer.mse()
         analyzer.show_values()
 
 

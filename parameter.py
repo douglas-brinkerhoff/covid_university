@@ -34,7 +34,7 @@ class parameter_creator:
                 random_percent = stats.beta.rvs(2,2,size=1)[0]
                 bern = stats.bernoulli(random_percent)
 
-                random_val = (0 != bern.rvs(size=1)[0])
+                random_val = bool((0 != bern.rvs(size=1)[0]))
                 self.dict_params[key] = random_val
         self.dict_params['scenario_name'] = 'trail_'+str(self.run_num)
 
@@ -65,7 +65,7 @@ class parameter_creator:
                 percent=value['std_dev'] if value['mean'] == False else 1-value['std_dev']  
                 bern = stats.bernoulli(percent)
 
-                sample_val = (0 != bern.rvs(size=1)[0])
+                sample_val = bool((0 != bern.rvs(size=1)[0]))
                 self.dict_params[key] = sample_val
 
         self.dict_params['scenario_name'] = 'trail_'+str(self.run_num) 
