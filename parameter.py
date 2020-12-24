@@ -36,7 +36,7 @@ class parameter_creator:
 
                 random_val = bool((0 != bern.rvs(size=1)[0]))
                 self.dict_params[key] = random_val
-        self.dict_params['scenario_name'] = 'trail_'+str(self.run_num)
+        self.dict_params['scenario_name'] = 'trial_'+str(self.run_num)
 
         self.run_num += 1
         return self.dict_params
@@ -68,7 +68,7 @@ class parameter_creator:
                 sample_val = bool((0 != bern.rvs(size=1)[0]))
                 self.dict_params[key] = sample_val
 
-        self.dict_params['scenario_name'] = 'trail_'+str(self.run_num) 
+        self.dict_params['scenario_name'] = 'trial_'+str(self.run_num) 
         self.run_num += 1
         return self.dict_params
     

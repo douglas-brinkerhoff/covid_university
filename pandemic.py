@@ -430,17 +430,15 @@ class Disease(object):
 
         # analyzer getting data from all runs
         analyzer.record(self.recorder.all_records)
-        # getting parameter items
-        analyzer.show_values()
 
 
 
 if __name__ == '__main__':
     mse_arr = []
     parameters =  pm.parameter_creator('param.txt') 
-    for i in range(1):
-        pandemic = Disease(parameters.randomized_sample())# setting empty dict of values
-        an = analysis.analyzer(['tests_performed_total', 'positive_tests_total'])
+    an = analysis.analyzer(['tests_performed_total', 'positive_tests_total'])
+    for i in range(5):
+        pandemic = Disease(parameters.fully_randomized_sample())# setting empty dict of values
         pandemic.multiple_runs(3,an)
 
         

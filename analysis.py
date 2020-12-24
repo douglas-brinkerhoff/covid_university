@@ -74,40 +74,52 @@ class analyzer:
 class h5writer:
     def __init__(self, filename):
         self.file = filename
-        self.current_gen = 'gen_1'  
         self.create_hdf5()
 
-    def create_hdf5(self):
+    def create_hdf5(self, new_gen=True):
         #create file, fails if exists
         try:
             with h5py.File(self.file, 'x') as f: 
-                f.create_group(self.current_gen) 
+                f.create_group('gen_1') 
+                #give the file metadata on what generation its on
+                f.attrs['gen'] = 1
 
         # except for when file already exists
         except OSError:
-            with h5py.File(self.file, 'r') as f:
-                # if file exists get latest generation value
-                self.current_gen = list(f.keys())[-1]
-
-            self.create_new_gen()
+           #if new_gen option true then create new generation group
+            if new_gen:
+                self.create_new_gen()
 
 
     # new group in the file
     def create_new_gen(self):
         with h5py.File(self.file, 'r+') as f:
             #get current gen num value and increment
-            num = int(self.current_gen[-1])+1
+            file_gen = f.attrs['gen']+1 
+            f.create_group('gen_'+str(file_gen))
+            #increment the generation in the file
+            f.attrs['gen'] = file_gen
+    
+    '''
+    data in format
 
-            f.create_group('gen_'+str(num)) 
-
-            # set current gen value to newest created
-            self.current_gen = 'gen_'+str(num) 
+    -gen#
+     |--trial# 
+        |--mse (stored as string_ json to unpack)
+        |--parameters (stored at string json to unpack)
+        |--data
+           |--dataname
+              |--all_runs (list of lists storing all run data)
+              |--mean (mean of all run data)
+    '''
     def store_analysis(self, analysis):
+        print('## storing for analysis ##')
         mse_list = []
         with h5py.File(self.file, 'r+') as f:
             # get file location of the current generation
+            generation = f.attrs['gen']
+            f_gen = f['gen_' + str(generation)]
 
-            f_gen = f[self.current_gen]
             # create new group for current run, named by scenario name
             f_scenario = f_gen.create_group(analysis.parameters['scenario_name'])
             # convert dict to tuple list for np.array to use
@@ -130,14 +142,20 @@ class h5writer:
             
             # add the mse_list /gen/scenario/mse
             f_scenario.create_dataset('mse', data=np.array(mse_list ,dtype='S'))
+        print('## successfully stored for analysis ##')
 
 # for testing
 if __name__ == '__main__':
     f = h5py.File('output.hdf5', 'r')
-    print(list(f.keys()))
-    gen1 = f['gen_1']['trail_1']
-    print(list(gen1.keys()))
-    print(gen1['parameters'][...])
-    print(gen1['mse'][...])
+    def recursive_file(name):
+        print(name)
+
+    f.visit(recursive_file)
+    print('attrs', list(f.attrs.keys()))
+    def print_recursive(name, object):
+        if 'mse' in name:
+            print(name)
+            print(object[...])
     
+    f.visititems(print_recursive)
     f.close()
