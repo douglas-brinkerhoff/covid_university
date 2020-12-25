@@ -413,7 +413,7 @@ class Disease(object):
 
        
         
-    def multiple_runs(self,number, analyzer):
+    def multiple_runs(self,number, recorder):
         output_every = max(int(number / 4),1)
         for runno in range(number):
             try:
@@ -426,20 +426,20 @@ class Disease(object):
         self.recorder.reset(True)
 
         # parameters must be set before record or else crash because it will try and read
-        analyzer.parameters = self.recorder.information 
+        recorder.parameters = self.recorder.information 
 
-        # analyzer getting data from all runs
-        analyzer.record(self.recorder.all_records)
+        # recorder getting data from all runs
+        recorder.record(self.recorder.all_records)
 
 
 
 if __name__ == '__main__':
     mse_arr = []
     parameters =  pm.parameter_creator('param.txt') 
-    an = analysis.analyzer(['tests_performed_total', 'positive_tests_total'])
-    for i in range(5):
+    recorder = analysis.recorder(['tests_performed_total', 'positive_tests_total'])
+    for i in range(2):
         pandemic = Disease(parameters.fully_randomized_sample())# setting empty dict of values
-        pandemic.multiple_runs(3,an)
+        pandemic.multiple_runs(3,recorder)
 
         
 
