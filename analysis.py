@@ -4,10 +4,10 @@ import numpy as np
 import h5py
 
 
-class analyzer:
+class recorder:
     def __init__(self,keys): 
         #init and save hd writer
-        self.writer = h5writer('output.hdf5')
+        self.writer = h5writer('output_new_format.hdf5')
         '''
         format is as such: list['keys'] -> dictionary{'all_runs'# raw run data,
         'mean'#mean of all run values for given day, 
@@ -103,8 +103,8 @@ class h5writer:
     '''
     data in format
 
-    -gen#
-     |--trial# 
+    -gen_#
+     |--trial_# 
         |--mse (stored as string_ json to unpack)
         |--parameters (stored at string json to unpack)
         |--data
@@ -114,7 +114,8 @@ class h5writer:
     '''
     def store_analysis(self, analysis):
         print('## storing for analysis ##')
-        mse_list = []
+        mse_dict = {}
+        
         with h5py.File(self.file, 'r+') as f:
             # get file location of the current generation
             generation = f.attrs['gen']
@@ -123,16 +124,16 @@ class h5writer:
             # create new group for current run, named by scenario name
             f_scenario = f_gen.create_group(analysis.parameters['scenario_name'])
             # convert dict to tuple list for np.array to use
-            tuple_list = json.dumps(analysis.parameters)
-            f_scenario.create_dataset('parameters', data=np.array(tuple_list, dtype='S'))
+            json_parameters = json.dumps(analysis.parameters)
+            f_scenario.create_dataset('parameters', data=np.array(json_parameters, dtype='S'))
             
             f_data = f_scenario.create_group('data')
 
             for key in analysis.values.keys():
                 #create folder for specific key
                 f_specific = f_data.create_group(key)
-                # add the key and mse pair to mse_list for later storing
-                mse_list.append((key, analysis.values[key]['mse']))
+                # add the key and mse pair to mse_dict for later storing
+                mse_dict[key] = analysis.values[key]['mse']
 
                 # storing all runs dataset /gen/scenario/data/$key/all_runs
                 f_specific.create_dataset('all_runs', data= analysis.values[key]['all_runs'])
@@ -140,18 +141,42 @@ class h5writer:
                 #storing mean dataset /gen/scenario/data/$key/mean
                 f_specific.create_dataset('mean', data=analysis.values[key]['mean'])
             
-            # add the mse_list /gen/scenario/mse
-            f_scenario.create_dataset('mse', data=np.array(mse_list ,dtype='S'))
+            # convert mse_dict to json format then store the string
+            #add the mse_dict /gen/scenario/mse
+            f_scenario.create_dataset('mse', data=np.array(json.dumps(mse_dict) ,dtype='S'))
         print('## successfully stored for analysis ##')
+
+
+class analyzer:
+    def __init__(self, hdf5_file):
+       self.data_file  = hdf5_file
+       # mse and param in format [{mse:, param:},]
+       self.mse_pairs = [] 
+    def find_values(self):
+        with h5py.File(self.data_file, 'r') as f:
+            #get most recent gen to analyze
+            generation = f.attrs['gen']
+            print('generation in analyzer', generation)
+            f_gen = f['gen_' + str(generation)] 
+            #iterate through all trail_# for given gen
+            for num, trail in enumerate(list(f_gen.keys())):
+                #get file object for trail folder
+                f_trail = f_gen[trail]
+                mse  = json.loads(f_trail['mse'][...].tolist())
+
+                parameters = json.loads(f_trail['parameters'][...].tolist())
+                self.mse_pairs.append({'mse': mse, 
+                                       'parameters': parameters }
+                                       )
+    
+
+
+
 
 # for testing
 if __name__ == '__main__':
-    f = h5py.File('output.hdf5', 'r')
-    def recursive_file(name):
-        print(name)
-
-    f.visit(recursive_file)
-    print('attrs', list(f.attrs.keys()))
+    f = h5py.File('output_new_format.hdf5', 'r')
+    print(f.attrs['gen'])
     def print_recursive(name, object):
         if 'mse' in name:
             print(name)
@@ -159,3 +184,8 @@ if __name__ == '__main__':
     
     f.visititems(print_recursive)
     f.close()
+    print('\n'*3)
+    print('#'*40)
+    obj_analyzer = analyzer('output_new_format.hdf5')
+    obj_analyzer.find_values()
+    print(obj_analyzer.mse_pairs)
