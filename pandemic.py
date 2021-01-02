@@ -128,7 +128,7 @@ class Disease(object):
        ### end of parameter setting in disease
 
 
-        #print(self.user_specified_options['_applied']) 
+        print(self.user_specified_options['_applied']) 
 
 
 
@@ -395,6 +395,7 @@ class Disease(object):
             if person is not None and person not in self.quarantined:
                 self.event('infected',person,infected_by=None,message='infected by outside source')
 
+        self.recorded_info['active_cases'] = sum(value==True for value in self.infected.values()) # get number of active cases
         self.recorded_info['tests_performed_total'] = self.tests_performed_total
         self.recorded_info['contact_traces_performed_today'] = self.contact_traces_performed_today
         self.recorded_info['positive_tests_total'] = self.positive_tests_total
@@ -436,12 +437,15 @@ class Disease(object):
 if __name__ == '__main__':
     mse_arr = []
     parameters =  pm.parameter_creator('param.txt') 
-    recorder = analysis.recorder(['tests_performed_total', 'positive_tests_total'])
-    for i in range(2):
-        pandemic = Disease(parameters.fully_randomized_sample())# setting empty dict of values
-        pandemic.multiple_runs(3,recorder)
+    recorder = analysis.recorder(['tests_performed_total', 'positive_tests_total', 'active_cases'])
+    while True:
 
-        
+        for i in range(30):
+            pandemic = Disease(parameters.fully_randomized_sample())# setting empty dict of values
+            pandemic.multiple_runs(5,recorder)
+
+        #new generation after 25 random runs
+        recorder.writer.create_new_gen()  
 
 
     
