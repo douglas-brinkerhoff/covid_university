@@ -7,7 +7,7 @@ import h5py
 class recorder:
     def __init__(self,keys): 
         #init and save hd writer
-        self.writer = h5writer('output_new_format.hdf5')
+        self.writer = h5writer('full_data.hdf5')
         '''
         format is as such: list['keys'] -> dictionary{'all_runs'# raw run data,
         'mean'#mean of all run values for given day, 
@@ -98,6 +98,7 @@ class h5writer:
             file_gen = f.attrs['gen']+1 
             f.create_group('gen_'+str(file_gen))
             #increment the generation in the file
+            print('new generation #', file_gen, ' started', flush=True)
             f.attrs['gen'] = file_gen
     
     '''
@@ -144,48 +145,95 @@ class h5writer:
             # convert mse_dict to json format then store the string
             #add the mse_dict /gen/scenario/mse
             f_scenario.create_dataset('mse', data=np.array(json.dumps(mse_dict) ,dtype='S'))
-        print('## successfully stored for analysis ##')
+        print('## successfully stored for analysis ##', flush=True)
 
 
-class analyzer:
+class loader:
     def __init__(self, hdf5_file):
        self.data_file  = hdf5_file
        # mse and param in format [{mse:, param:},]
        self.mse_pairs = [] 
-    def find_values(self):
-        with h5py.File(self.data_file, 'r') as f:
-            #get most recent gen to analyze
-            generation = f.attrs['gen']
-            print('generation in analyzer', generation)
-            f_gen = f['gen_' + str(generation)] 
+       self.all_data = {}
+    def generate_mse_pairs_file(self):
+       with h5py.File(self.data_file, 'r') as f:
+ 
+            # iterate through all the generations
+            for f_gen_name in f.__iter__():
+                '__iter__ returns name so must convert to file'
+                f_gen = f[f_gen_name]
             #iterate through all trail_# for given gen
-            for num, trail in enumerate(list(f_gen.keys())):
-                #get file object for trail folder
-                f_trail = f_gen[trail]
-                mse  = json.loads(f_trail['mse'][...].tolist())
+                for num, trail in enumerate(list(f_gen.keys())):
+                    #get file object for trail folder
+                    f_trail = f_gen[trail]
+                    # get serialized json data back to normal form
+                    mse  = json.loads(f_trail['mse'][...].tolist())
+                    parameters = json.loads(f_trail['parameters'][...].tolist())
+                    
+                    # add new dictionarys to mse_pairs list
+                    self.mse_pairs.append({'mse': mse, 
+                                           'parameters': parameters }
+                                           )
+                #store current gen
+                self.reset(f_gen_name)
 
-                parameters = json.loads(f_trail['parameters'][...].tolist())
-                self.mse_pairs.append({'mse': mse, 
-                                       'parameters': parameters }
-                                       )
-    
 
 
-
+    def reset(self, gen):
+        # check if any values are in mse_pairs
+        # if yes then store values in the all_data
+        
+        if self.mse_pairs:
+            self.all_data[gen] = self.mse_pairs
+            # reset array
+            self.mse_pairs = []
+ 
+    def mse_find(self, num=1):
+        #find largest  
+        mse_pairs_arr = np.array([])
+        for gen in self.all_data.keys():
+            gen = self.all_data[gen]
+            for pairs in gen:
+               'get the mse values'
+               temp_pair = np.array(list(pairs['mse'].values()))
+               # if mse_pairs has no values then set it equal to first value
+               if mse_pairs_arr.size == 0:
+                   mse_pairs_arr = temp_pair
+               # else vertical append new values
+               else:
+                   mse_pairs_arr = np.vstack((mse_pairs_arr, temp_pair))
+        location_mins = np.argmin(mse_pairs_arr, axis=0)
+        print(location_mins)
+        print(mse_pairs_arr[location_mins[0]], mse_pairs_arr[location_mins[1]])
+ 
+        return location_mins
 
 # for testing
 if __name__ == '__main__':
-    f = h5py.File('output_new_format.hdf5', 'r')
-    print(f.attrs['gen'])
-    def print_recursive(name, object):
-        if 'mse' in name:
-            print(name)
-            print(object[...])
-    
-    f.visititems(print_recursive)
-    f.close()
     print('\n'*3)
     print('#'*40)
-    obj_analyzer = analyzer('output_new_format.hdf5')
-    obj_analyzer.find_values()
-    print(obj_analyzer.mse_pairs)
+    with h5py.File('full_data.hdf5','r') as f:
+        print(list(f['gen_20'].keys()))
+        print(list(f['gen_20/trial_301/data/active_cases/mean'][...]))
+    '''
+    obj_analyzer = loader('output_new_format.hdf5')
+    obj_analyzer.generate_mse_pairs_file()
+    f = h5py.File('output_new_format.hdf5', 'r')
+    def get_parameters_small():
+        smallest = obj_analyzer.mse_find()
+        counter = 0
+        def find_smallest(name, object):
+            nonlocal counter
+            if 'mse' in name:
+                print(name, object[...]) 
+                if counter in smallest:
+                    print(name)
+                    print(object[...])
+                counter += 1 
+        f.visititems(find_smallest)
+
+    #get_parameters_small()
+    f.close()
+    ''' 
+
+
+
