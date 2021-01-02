@@ -736,7 +736,10 @@ class University(object):
                 pairs[2] += item[0] * (item[0]-1) * ratio
         print('+++++ SD_WEIGH: %6i %8i %10i' % (int(sum[2]),int(size[2]),int(pairs[2])))
         if size[1] > 0:
-            self.crowd_reduction_factor = pairs[2]/pairs[1]
+            #add aditional catch to prevent divide by zero
+            if pairs[1] > 0:
+                self.crowd_reduction_factor = pairs[2]/pairs[1]
+
             self.activity_reduction_factor = size[1]/size[0]
             print('+++++ Activity Reduction: %6.4f  Crowd Reduction: %6.4f' % (self.activity_reduction_factor,self.crowd_reduction_factor))
         for ptype in [self.student_data,self.instructor_data]:
