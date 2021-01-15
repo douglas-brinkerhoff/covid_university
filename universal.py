@@ -32,6 +32,9 @@ R0 = 5.8
 contact_rate = 19 #validation
 npi_factor = 0.25
 
+vaccine_effectiveness = .5
+vaccine_rate = .1
+
 daily_outside_cases = [1,0,0,0] #this needs to be a vector the way the code is written; 1,0,0,0 corresponds to 1/4 (see paper)
 contact_tracing_testing_rate = 1.0
 contact_tracing_quarantine_rate = 1.0

@@ -376,7 +376,8 @@ class Disease(object):
             likelihood *= 1.6
         else:
             likelihood *= 0.8
-        return probtools.random_event(1-(1-likelihood)**contact_strength)
+        # John changed the below line to be multiplied by both vaccine variables
+        return probtools.random_event((1-(1-likelihood)**contact_strength) * universal.vaccine_effectiveness * universal.vaccine_rate)
 
     def execute_main_step(self):
         self.day += 1
@@ -439,6 +440,8 @@ class Disease(object):
                 contact_information = self.registrar.query_transmit(person)
                 for potential_infected in contact_information:
                     if potential_infected in self.susceptible and potential_infected not in self.quarantined and potential_infected not in to_be_infected and self.transmission_success(person,contact_information[potential_infected]):
+                        # VACCINE LOGIC HERE OR ELSE IN transmission_success()
+                        # Currently in transmission_success() line 379
                         to_be_infected[potential_infected] = person
                         self.infection_transmissions[person] += 1
 
