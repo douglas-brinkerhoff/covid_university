@@ -22,6 +22,7 @@ import gather2 as gather
 
 import csv
 import pandas
+import numpy as np
 from matplotlib import pyplot
 
 # track MSE across multiple runs on target variables
@@ -265,6 +266,7 @@ class Disease(object):
         self.infected = {}
         self.infection_start_date = {}
         self.symptomatic_infecteds = {}
+        self.vaccinated = {}
         self.symptomatic_day = {}
         self.infection_detectable_day = {}
         self.infection_end_day = {}
@@ -324,7 +326,11 @@ class Disease(object):
             self.infection_end_day[person] = self.day + self.recovery_days
             self._record_state_change(person,'infected')
             return
+        # John changed for vaccine
         elif etype == 'new person':
+            prob_vaccinate = np.random.randint(0, 100)
+            if prob_vaccinate < universal.vaccine_rate:
+                self.vaccinated[person] = True
             if person in self.registrar.student_data:
                 pstring = 'student ' + str(self.registrar.student_data[person]['cohort'])
             else:
@@ -369,15 +375,25 @@ class Disease(object):
             self.positive_tests_today += 1
             return 1 # False Positive Result
         return -1
+
     def transmission_success(self,person,contact_strength):
         days_infected = self.day - self.infection_start_date[person]
         likelihood = self.serial_interval_distribution[days_infected]
+
+        # John changed for vaccine
         if person in self.symptomatic_infecteds:
-            likelihood *= 1.6
+            if person in self.vaccinated:
+                likelihood *= (1 - universal.vaccine_effectiveness)
+            else:
+                likelihood *= 1.6
+
+        # it seems that the vaccine would be equally effective upon asymptomatic infected persons, but verify
         else:
-            likelihood *= 0.8
-        # John changed the below line to be multiplied by both vaccine variables
-        return probtools.random_event((1-(1-likelihood)**contact_strength) * universal.vaccine_effectiveness * universal.vaccine_rate)
+            if person in self.vaccinated:
+                likelihood *= (1 - universal.vaccine_effectiveness)
+            else:
+                likelihood *= 0.8
+        return probtools.random_event((1-(1-likelihood)**contact_strength))
 
     def execute_main_step(self):
         self.day += 1
@@ -440,8 +456,6 @@ class Disease(object):
                 contact_information = self.registrar.query_transmit(person)
                 for potential_infected in contact_information:
                     if potential_infected in self.susceptible and potential_infected not in self.quarantined and potential_infected not in to_be_infected and self.transmission_success(person,contact_information[potential_infected]):
-                        # VACCINE LOGIC HERE OR ELSE IN transmission_success()
-                        # Currently in transmission_success() line 379
                         to_be_infected[potential_infected] = person
                         self.infection_transmissions[person] += 1
 
