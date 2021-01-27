@@ -383,14 +383,14 @@ class Disease(object):
         # John changed for vaccine
         if person in self.symptomatic_infecteds:
             if person in self.vaccinated:
-                likelihood *= (1 - universal.vaccine_effectiveness)
+                likelihood *= 1.6 * (1 - universal.vaccine_effectiveness)
             else:
                 likelihood *= 1.6
 
         # it seems that the vaccine would be equally effective upon asymptomatic infected persons, but verify
         else:
             if person in self.vaccinated:
-                likelihood *= (1 - universal.vaccine_effectiveness)
+                likelihood *= .8 * (1 - universal.vaccine_effectiveness)
             else:
                 likelihood *= 0.8
         return probtools.random_event((1-(1-likelihood)**contact_strength))
