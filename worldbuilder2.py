@@ -75,28 +75,34 @@ class BinObject(object):
 
 class University(object):
     def __init__(self,optionsdict):
-        self.maximum_section_size = get_parameter(optionsdict,'class_size_limit',150)
-        self.contact_upscale_factor = get_parameter(optionsdict,'contact_upscale_factor',1.0)
-        self.friendship_contacts = get_parameter(optionsdict,'friendship_contacts',4.0) * self.contact_upscale_factor
-        self.academic_contacts = get_parameter(optionsdict,'academic_contacts',4.0)  * self.contact_upscale_factor
-        self.broad_social_contacts = get_parameter(optionsdict,'broad_social_contacts',2.0) * self.contact_upscale_factor
-        self.department_environmental_contacts = get_parameter(optionsdict,'department_environmental_contacts',4.0) * self.contact_upscale_factor
-        self.broad_environmental_contacts = get_parameter(optionsdict,'broad_environmental_contacts',4.0) * self.contact_upscale_factor
-        self.residential_neighbors = get_parameter(optionsdict,'residential_neighbors',1.0) * self.contact_upscale_factor
+        self.maximum_section_size = get_parameter(optionsdict,'class_size_limit', universal.maximum_section_size)
+        self.contact_upscale_factor = get_parameter(optionsdict,'contact_upscale_factor', universal.contact_upscale_factor)
+        self.friendship_contacts = get_parameter(optionsdict,'friendship_contacts', universal.friendship_contacts) * universal.contact_upscale_factor
+        self.academic_contacts = get_parameter(optionsdict,'academic_contacts', universal.academic_contacts)  * universal.contact_upscale_factor
+        self.broad_social_contacts = get_parameter(optionsdict,'broad_social_contacts', universal.broad_social_contacts) * universal.contact_upscale_factor
+        self.department_environmental_contacts = get_parameter(optionsdict,'department_environmental_contacts', universal.department_environmental_contacts) * universal.contact_upscale_factor
+        self.broad_environmental_contacts = get_parameter(optionsdict,'broad_environmental_contacts', universal.broad_environmental_contacts) * universal.contact_upscale_factor
+        self.residential_neighbors = get_parameter(optionsdict,'residential_neighbors', universal.residential_neighbors) * universal.contact_upscale_factor
 
-        self.online_transition = get_parameter(optionsdict,'online_transition',30)
-        self.residential_rate = 1
-        self.social_distancing = get_parameter(optionsdict,'social_distancing', True)
+        self.online_transition = get_parameter(optionsdict,'online_transition', universal.online_transition)
+        self.residential_rate = universal.residential_rate
+        self.social_distancing = get_parameter(optionsdict,'social_distancing', universal.social_distancing)
+
         #if self.online_transition is not False:
             #default_of = 0.5 * (1.0 + self.online_transition / self.maximum_section_size)
         #else:
             #default_of = 1.0
         #self.occupancy_factor = get_parameter(optionsdict,'occupancy_factor',default_of)
-        self.crowd_reduction_factor = 1.0
-        self.activity_reduction_factor  = 1.0
+
+        self.crowd_reduction_factor = universal.crowd_reduction_factor
+        self.activity_reduction_factor  = universal.activity_reduction_factor
+
+        # what is going on with this online transition business? see above ^^^
         if self.online_transition is False:
             self.online_transition = 999999
-        self.recitation_rules = [50,20,80] # Classes over 50 have recitations of 20, with 80 student max per assistant
+
+
+        self.recitation_rules = universal.recitation_rules # Classes over 50 have recitations of 20, with 80 student max per assistant
         self.selection_engine = {}
         self.department_selector = {}
         self.fastsubsets = None

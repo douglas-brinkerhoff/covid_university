@@ -113,67 +113,66 @@ class Disease(object):
         self.user_specified_options = optionsdict
 
         # Parameter - whether a quarantine procedure is in place
-        self.quarantining = self.get_parameter('quarantining',True)
+        self.quarantining = self.get_parameter('quarantining',universal.quarantining)
 
         # Parameter - whether contact tracing is in place
-        self.contact_tracing = self.get_parameter('contact_tracing',True)
+        self.contact_tracing = self.get_parameter('contact_tracing',universal.contact_tracing)
 
         # Parameter - fraction of population that is initially infected
-        self.initial_infected_fraction = self.get_parameter('initial_infected_fraction',0.00)
+        self.initial_infected_fraction = self.get_parameter('initial_infected_fraction', universal.initial_infected_fraction)
 
         # Parameter - fraction of population that is initially immune
         self.initial_removed_fraction = self.get_parameter('initial_removed_fraction',0.05)
 
-        # ?
         self.removed_cohorts = self.get_parameter('removed_cohorts',[])
 
         # Parameter - mean incubation perion
-        self.incubation_period = self.get_parameter('incubation_period',5.2)
+        self.incubation_period = self.get_parameter('incubation_period', universal.incubation_period)
 
         # Parameter - Mean serial interval
-        self.serial_interval = self.get_parameter('serial_interval',5.8)
+        self.serial_interval = self.get_parameter('serial_interval', universal.serial_interval)
 
         # Parameter - fraction of cases that are symptomatic
-        self.symptomatic_fraction = self.get_parameter('symptomatic_fraction',0.25)
+        self.symptomatic_fraction = self.get_parameter('symptomatic_fraction',universal.symptomatic_fraction)
 
         # Number of days from infection to recovery
-        self.recovery_days = 14
+        self.recovery_days = universal.recovery_days
 
         # Number of days spent before being released from quarantine
-        self.quarantine_days = 14
+        self.quarantine_days = universal.quarantine_days
 
         # Days after infection in which diseased state cannot be detected by tests
-        self.days_indetectable = 3
+        self.days_indetectable = universal.days_indetectable
 
         # Basic reproduction number : this is used to parameterize contact transmission probability
-        self.R0 = self.get_parameter('R0',3.8)
+        self.R0 = self.get_parameter('R0', universal.R0)
 
         # Average contact rate ??
-        self.contact_rate = self.get_parameter('contact_rate',19)
+        self.contact_rate = self.get_parameter('contact_rate', universal.contact_rate)
 
         # Transmission probability reduction from using masks
-        self.npi_factor = self.get_parameter('npi_factor',0.5)
+        self.npi_factor = self.get_parameter('npi_factor', universal.npi_factor)
 
         # Number of outside cases to occur per day
-        self.daily_outside_cases = self.get_parameter('daily_outside_cases',[1,0,0,0])
+        self.daily_outside_cases = self.get_parameter('daily_outside_cases', universal.daily_outside_cases)
 
         # Number of traced contacts who can be tested
-        self.contact_tracing_testing_rate = self.get_parameter('contact_tracing_testing_rate',1.0)
+        self.contact_tracing_testing_rate = self.get_parameter('contact_tracing_testing_rate', universal.contact_tracing_testing_rate)
 
         # Number of traced contacts who get quarantined
-        self.contact_tracing_quarantine_rate = self.get_parameter('contact_tracing_quarantine_rate',1.0)
+        self.contact_tracing_quarantine_rate = self.get_parameter('contact_tracing_quarantine_rate', universal.contact_tracing_quarantine_rate)
 
         # Number of days it takes to complete contact tracing
-        self.contact_tracing_days = self.get_parameter('contact_tracing_days',2)
+        self.contact_tracing_days = self.get_parameter('contact_tracing_days', universal.contact_tracing_days)
 
         # Surveillance testing rate
-        self.daily_testing_fraction = self.get_parameter('daily_testing_fraction',0.03)
+        self.daily_testing_fraction = self.get_parameter('daily_testing_fraction', universal.daily_testing_fraction)
 
         # False positive rate
-        self.daily_testing_false_positive = self.get_parameter('daily_testing_false_positive',0.001)
+        self.daily_testing_false_positive = self.get_parameter('daily_testing_false_positive', universal.daily_testing_false_positive)
 
         # False negative rate
-        self.daily_testing_false_negative = self.get_parameter('daily_testing_false_negative',0.030)
+        self.daily_testing_false_negative = self.get_parameter('daily_testing_false_negative', universal.daily_testing_false_negative)
 
         # Create a list of all the people in the University (student plus instructors)
         self.people = universal.students + universal.instructors
@@ -485,7 +484,7 @@ class Disease(object):
         run_number = number + 1
         with open('timeSeries%s.csv' % run_number, 'w', newline='') as series:
             writer = csv.writer(series)
-            writer.writerow(['Run', 'Day', 'Pos. Tests Today', 'Positivity Rate', 'Susceptible', 'Infected', 'Removed',
+            writer.writerow(['Run', 'Day', 'Pos. Tests Today', 'Susceptible', 'Infected', 'Removed',
                              'Quarantined', 'Contact Traces Today', 'Tests Today', 'Average Transmissions'])
             for index in range(self.run_days):
                 self.execute_main_step()
@@ -493,7 +492,6 @@ class Disease(object):
                 # print('%04i-%03i  S %05i  I %05i  R %05i  Q %05i  CT %05i  TP %05i  R %5.3f' % (number+1,index+1,len(self.susceptible),len(self.infected),len(self.removed),len(self.quarantined),self.contact_traces_performed_today,self.tests_performed_today,self.average_transmissions))
                 # John's addition
                 writer.writerow([number + 1, index + 1, self.positive_tests_today,
-                                 '%8.6f' % (self.positive_tests_today / self.tests_performed_today),
                                  len(self.susceptible), len(self.infected), len(self.removed), len(self.quarantined),
                                  self.contact_traces_performed_today, self.tests_performed_today,
                                  self.average_transmissions])
@@ -560,34 +558,36 @@ class Disease(object):
         pyplot.title("Daily Number of Active COVID-19 Cases at UMT")
         pyplot.show()
 
+        print("BUG: Days must be fewer than: ", len(pandemic.serial_interval_distribution))
+
 
         # calculate difference between actual and predicted  across all trial runs for positive tests amd total tests
-        actual_data_pos_tests = pandas.read_csv('data_positives.csv')
-        sum_actual_pos_tests = actual_data_pos_tests.sum()
-        actual_data_tot_tests = pandas.read_csv('data_total_tests.csv')
-        sum_actual_tot_tests = actual_data_tot_tests.sum()
-
-        run_data = pandas.read_csv('timeSeries%s.csv' % run_number)
-
-        predicted_data_pos_tests = run_data['Pos. Tests Today']
-        sum_predicted_pos_tests = predicted_data_pos_tests.sum()
-        predicted_data_tot_tests = run_data['Tests Today']
-        sum_predicted_tot_tests = predicted_data_tot_tests.sum()
-
-        diff_pos_tests = abs(sum_predicted_pos_tests - sum_actual_pos_tests)
-        diff_tot_tests = abs(sum_predicted_tot_tests - sum_actual_tot_tests)
-
-        print('Difference on positive tests for run %i:' % run_number)
-        print('%4.2f' % diff_pos_tests)
-        diff_pos_tests_all_runs.append(diff_pos_tests)
-        print('Difference on total tests for run %i:' % run_number)
-        print('%4.2f' % diff_tot_tests)
-        diff_tot_tests_all_runs.append(diff_tot_tests)
-
-        print('Difference averaged for positive tests:')
-        print('%4.2f' % (sum(diff_pos_tests_all_runs) / len(diff_pos_tests_all_runs)))
-        print('Difference averaged for total tests:')
-        print('%4.2f' % (sum(diff_tot_tests_all_runs) / len(diff_tot_tests_all_runs)))
+        # actual_data_pos_tests = pandas.read_csv('data_positives.csv')
+        # sum_actual_pos_tests = actual_data_pos_tests.sum()
+        # actual_data_tot_tests = pandas.read_csv('data_total_tests.csv')
+        # sum_actual_tot_tests = actual_data_tot_tests.sum()
+        #
+        # run_data = pandas.read_csv('timeSeries%s.csv' % run_number)
+        #
+        # predicted_data_pos_tests = run_data['Pos. Tests Today']
+        # sum_predicted_pos_tests = predicted_data_pos_tests.sum()
+        # predicted_data_tot_tests = run_data['Tests Today']
+        # sum_predicted_tot_tests = predicted_data_tot_tests.sum()
+        #
+        # diff_pos_tests = abs(sum_predicted_pos_tests - sum_actual_pos_tests)
+        # diff_tot_tests = abs(sum_predicted_tot_tests - sum_actual_tot_tests)
+        #
+        # print('Difference on positive tests for run %i:' % run_number)
+        # print('%4.2f' % diff_pos_tests)
+        # diff_pos_tests_all_runs.append(diff_pos_tests)
+        # print('Difference on total tests for run %i:' % run_number)
+        # print('%4.2f' % diff_tot_tests)
+        # diff_tot_tests_all_runs.append(diff_tot_tests)
+        #
+        # print('Difference averaged for positive tests:')
+        # print('%4.2f' % (sum(diff_pos_tests_all_runs) / len(diff_pos_tests_all_runs)))
+        # print('Difference averaged for total tests:')
+        # print('%4.2f' % (sum(diff_tot_tests_all_runs) / len(diff_tot_tests_all_runs)))
 
     def multiple_runs(self,number):
         output_every = max(int(number / 4),1)
@@ -615,7 +615,11 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.''')
     pandemic = Disease({})
+
+    # try:
     pandemic.multiple_runs(2)
+    # except IndexError:
+    #     print("SID: ", pandemic.serial_interval_distribution, "Day: ", pandemic.day)
 
     dc = gather.DataCollector(pandemic)
     dc.register_report('Total Infected',{'susceptible' : False},lambda x: x[-1] - x[0])

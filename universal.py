@@ -20,25 +20,29 @@ import probtools
 version = '2020-11-12-github' #date of code version
 quarantining = True #true or false
 contact_tracing = True #true or false
-initial_infected_fraction = 0.00
-initial_removed_fraction = 0.05
+initial_infected_fraction = 0.005
+initial_removed_fraction = 0.052
 incubation_period = 5.2 #used in discretized gamma
-serial_interval = 5.8 #used in discretized gamma
-symptomatic_fraction = 0.25
-recovery_days = 14
-quarantine_days = 14
-days_indetectable = 3
-R0 = 5.8
-contact_rate = 19 #validation
-npi_factor = 0.25
+serial_interval = 6.599 #used in discretized gamma ad been 5.8
+symptomatic_fraction = 0.2
+recovery_days = 18
+quarantine_days = 11
+days_indetectable = 2
+R0 = 3.567
+contact_rate = 16.759 #validation
+npi_factor = 0.621
 
-vaccine_effectiveness = .9  # decimal form
-vaccine_rate = 99   # integer out of 100 i.e. 10% = 10  50% = 50
+daily_testing_false_negative = 0.031
+daily_testing_false_positive = 0.001
+contact_upscale_factor = 1.204
+
+vaccine_effectiveness = .5  # decimal form
+vaccine_rate = 50  # integer out of 100 i.e. 10% = 10  50% = 50
 
 daily_outside_cases = [1,0,0,0] #this needs to be a vector the way the code is written; 1,0,0,0 corresponds to 1/4 (see paper)
-contact_tracing_testing_rate = 1.0
-contact_tracing_quarantine_rate = 1.0
-contact_tracing_days = 2
+contact_tracing_testing_rate = 0.902
+contact_tracing_quarantine_rate = 1.137
+contact_tracing_days = 1  # must be an integer
 daily_testing_fraction = 0.00
 fpr = 0.001 #false positive rate of daily testing
 fnr = 0.03 #false negative rate of daily testing
@@ -56,16 +60,16 @@ meeting_schedules = [[1,3],[1,3],[0,2,4],[0,2,4],[0,2]] #same
 
 class_cohorts = 8   #same
 
-maximum_section_size = 150 #STILL UNSURE ABOUT THIS; I have TA'd for the largest class at UM and the largest section size is 30 so that the TA's only have that many
+maximum_section_size = 172.681 #STILL UNSURE ABOUT THIS; I have TA'd for the largest class at UM and the largest section size is 30 so that the TA's only have that many
 
-friendship_contacts = 4.0 #the following contribute to Poisson process for contact (see paper appendix); have not changed this thus far
-academic_contacts = 4.0
-broad_social_contacts = 2.0
-department_environmental_contacts = 4.0
-broad_environmental_contacts = 4.0
-residential_neighbors=1.0
+friendship_contacts = 3.97 #the following contribute to Poisson process for contact (see paper appendix); have not changed this thus far
+academic_contacts = 3.379
+broad_social_contacts = 1.985
+department_environmental_contacts = 4.356
+broad_environmental_contacts = 5.331
+residential_neighbors= 1.276
 
-online_transition = 95 #largest face-to-face class is a chemistry course; is this right?
+online_transition = 80.721
 residential_rate = 1
 social_distancing = True
 
@@ -94,5 +98,5 @@ in_dept_broad_base_rate = 0.00158
 #_poisson_computer = probtools.Poisson()
 #typical_R0 = 4.0
 #typical_contacts_per_day = 10.2
-#incubation_period = lambda : _poisson_computer.draw(5.2)
+incubation_period = 6.736
 #poisson = _poisson_computer.draw
