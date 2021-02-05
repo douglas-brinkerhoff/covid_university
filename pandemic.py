@@ -209,7 +209,6 @@ class Disease(object):
 
 
         #reset testing arrays for MSE
-
         self.tests_performed_total = 0
         self.positive_tests_total = 0
 
@@ -320,11 +319,9 @@ class Disease(object):
     def execute_main_step(self):
         self.day += 1
         self.registrar.update_query_system()
-#        self.tests_performed_total = 0
         self.contact_traces_performed_today = 0
-#        self.positive_tests_total = 0
 
-        #? might be cause of all 0's seems it relies on quarentining for testing
+        #no testings run if quarentining is set to false
         #if self.quarantining:
         for person in self.all_individuals:
             if probtools.random_event(self.daily_testing_fraction):
@@ -395,9 +392,13 @@ class Disease(object):
             if person is not None and person not in self.quarantined:
                 self.event('infected',person,infected_by=None,message='infected by outside source')
 
+        # additional recorded values
         self.recorded_info['active_cases'] = sum(value==True for value in self.infected.values()) # get number of active cases
         self.recorded_info['tests_performed_total'] = self.tests_performed_total
         self.recorded_info['contact_traces_performed_today'] = self.contact_traces_performed_today
+        # end additional
+
+
         self.recorded_info['positive_tests_total'] = self.positive_tests_total
         self.recorded_info['day'] = self.day
         self.recorded_info['R'] = self.average_transmissions
@@ -436,16 +437,14 @@ class Disease(object):
 
 if __name__ == '__main__':
     mse_arr = []
-    parameters =  pm.parameter_creator('param.txt') 
-    recorder = analysis.recorder(['tests_performed_total', 'positive_tests_total', 'active_cases'])
-    while True:
-
-        for i in range(30):
-            pandemic = Disease(parameters.fully_randomized_sample())# setting empty dict of values
-            pandemic.multiple_runs(5,recorder)
+    parameters =  pm.parameter_creator('params/param_3.txt') 
+    recorder = analysis.recorder(['tests_performed_total', 'positive_tests_total', 'active_cases'], 'parameter_3.hdf5')
+    for i in range(1):
+        pandemic = Disease(parameters.randomized_sample())# setting empty dict of values
+        pandemic.multiple_runs(15,recorder)
 
         #new generation after 25 random runs
-        recorder.writer.create_new_gen()  
+        #recorder.writer.create_new_gen()  
 
 
     

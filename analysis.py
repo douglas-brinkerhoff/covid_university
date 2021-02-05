@@ -5,14 +5,9 @@ import h5py
 
 
 class recorder:
-    def __init__(self,keys): 
+    def __init__(self,keys, filename): 
         #init and save hd writer
-        self.writer = h5writer('full_data.hdf5')
-        '''
-        format is as such: list['keys'] -> dictionary{'all_runs'# raw run data,
-        'mean'#mean of all run values for given day, 
-        'mse # value of mse '} 
-        '''
+        self.writer = h5writer(filename)
         self.values = {}   
 
 

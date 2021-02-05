@@ -28,6 +28,10 @@ class parameter_creator:
                 # when fully randomized values can be illegal
                 if 'min_val' in value and randomized < value['min_val']:
                     randomized = value['min_val']
+            
+                if 'max_val' in value and randomized > value['max_val']:
+                    randomized = value['max_val']
+
 
                 self.dict_params[key] = randomized
             if isinstance(value['mean'], bool):
@@ -58,6 +62,19 @@ class parameter_creator:
                 if isinstance(value['mean'], int):
                     # if mean is int verify that it remains that way
                      sample_val = int(sample_val)
+
+
+                if 'max_val' in value and sample_val > value['max_val']:
+                    sample_val = value['max_val']
+
+                #negative values do not make sense for any of the values and thus cannot happen
+                
+                if sample_val < 0:
+                    sample_val = 0
+          
+
+
+
                 self.dict_params[key] = sample_val
 
             # if bool then sample bernoulli instead of normal
