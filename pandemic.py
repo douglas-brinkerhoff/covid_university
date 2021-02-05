@@ -112,6 +112,9 @@ class Disease(object):
         self.version = '2020-06-25-github'
         self.user_specified_options = optionsdict
 
+        # Is vaccine available?
+        self.vaccine = self.get_parameter('vaccine', universal.vaccine)
+
         # Parameter - whether a quarantine procedure is in place
         self.quarantining = self.get_parameter('quarantining',universal.quarantining)
 
@@ -181,6 +184,10 @@ class Disease(object):
         # by parameters defined above, and k=4
         self.incubation_picker = probtools.DiscreteGammaFull(self.incubation_period,4)
         self.serial_interval_distribution = probtools.DiscreteGammaFull(self.serial_interval,4).densities
+
+        #v Vaccine variables
+        self.vaccine_rate = self.get_parameter('vaccine_rate', universal.vaccine_rate)
+        self.vaccine_effectiveness = self.get_parameter('vaccine_effectiveness', universal.vaccine_effectiveness)
 
         # This just shows the marginal probability of pre-symptomatic transmission.  Doesn't affect 
         # anything else
@@ -327,9 +334,10 @@ class Disease(object):
             return
         # John changed for vaccine
         elif etype == 'new person':
-            prob_vaccinate = np.random.randint(0, 100)
-            if prob_vaccinate < universal.vaccine_rate:
-                self.vaccinated[person] = True
+            if self.vaccine:
+                prob_vaccinate = np.random.randint(0, 100)
+                if prob_vaccinate < universal.vaccine_rate:
+                    self.vaccinated[person] = True
             if person in self.registrar.student_data:
                 pstring = 'student ' + str(self.registrar.student_data[person]['cohort'])
             else:
@@ -558,36 +566,7 @@ class Disease(object):
         pyplot.title("Daily Number of Active COVID-19 Cases at UMT")
         pyplot.show()
 
-        print("BUG: Days must be fewer than: ", len(pandemic.serial_interval_distribution))
 
-
-        # calculate difference between actual and predicted  across all trial runs for positive tests amd total tests
-        # actual_data_pos_tests = pandas.read_csv('data_positives.csv')
-        # sum_actual_pos_tests = actual_data_pos_tests.sum()
-        # actual_data_tot_tests = pandas.read_csv('data_total_tests.csv')
-        # sum_actual_tot_tests = actual_data_tot_tests.sum()
-        #
-        # run_data = pandas.read_csv('timeSeries%s.csv' % run_number)
-        #
-        # predicted_data_pos_tests = run_data['Pos. Tests Today']
-        # sum_predicted_pos_tests = predicted_data_pos_tests.sum()
-        # predicted_data_tot_tests = run_data['Tests Today']
-        # sum_predicted_tot_tests = predicted_data_tot_tests.sum()
-        #
-        # diff_pos_tests = abs(sum_predicted_pos_tests - sum_actual_pos_tests)
-        # diff_tot_tests = abs(sum_predicted_tot_tests - sum_actual_tot_tests)
-        #
-        # print('Difference on positive tests for run %i:' % run_number)
-        # print('%4.2f' % diff_pos_tests)
-        # diff_pos_tests_all_runs.append(diff_pos_tests)
-        # print('Difference on total tests for run %i:' % run_number)
-        # print('%4.2f' % diff_tot_tests)
-        # diff_tot_tests_all_runs.append(diff_tot_tests)
-        #
-        # print('Difference averaged for positive tests:')
-        # print('%4.2f' % (sum(diff_pos_tests_all_runs) / len(diff_pos_tests_all_runs)))
-        # print('Difference averaged for total tests:')
-        # print('%4.2f' % (sum(diff_tot_tests_all_runs) / len(diff_tot_tests_all_runs)))
 
     def multiple_runs(self,number):
         output_every = max(int(number / 4),1)
@@ -616,10 +595,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.''')
     pandemic = Disease({})
 
-    # try:
     pandemic.multiple_runs(2)
-    # except IndexError:
-    #     print("SID: ", pandemic.serial_interval_distribution, "Day: ", pandemic.day)
 
     dc = gather.DataCollector(pandemic)
     dc.register_report('Total Infected',{'susceptible' : False},lambda x: x[-1] - x[0])
