@@ -20,6 +20,9 @@ import probtools,random
 import universal
 import worldbuilder2 as worldbuilder
 import gather2 as gather
+import numpy as np
+
+
 
 
 class FiFoQueue(object):
@@ -98,6 +101,9 @@ class Disease(object):
         
 
         ### location of all disease paramater settings
+        self.vaccine = self.get_parameter('vaccine', True)
+        self.vaccine_rate = self.get_parameter('vaccine_rate', 50)
+        self.vaccine_effect = self.get_parameter('vaccine_effect', .5)
         self.quarantining = self.get_parameter('quarantining',True)
         self.contact_tracing = self.get_parameter('contact_tracing',True)
         self.initial_infected_fraction = self.get_parameter('initial_infected_fraction',0.00)
@@ -206,6 +212,7 @@ class Disease(object):
         self.recorded_info = {}
         self.completed_infections = 0
         self.average_transmissions = 0
+        self.vaccinated = {}
 
 
         #reset testing arrays for MSE
@@ -262,6 +269,10 @@ class Disease(object):
             self._record_state_change(person,'infected')
             return
         elif etype == 'new person':
+            if self.vaccine:
+                prob_vaccinate = np.random.randint(0, 100)
+                if prob_vaccinate < self.vaccine_rate:
+                    self.vaccinated[person] = True
             if person in self.registrar.student_data:
                 pstring = 'student ' + str(self.registrar.student_data[person]['cohort'])
             else:
@@ -307,14 +318,21 @@ class Disease(object):
             self.positive_tests_total += 1
             return 1 # False Positive Result
         return -1
+
     def transmission_success(self,person,contact_strength):
         days_infected = self.day - self.infection_start_date[person]
         likelihood = self.serial_interval_distribution[days_infected]
         if person in self.symptomatic_infecteds:
-            likelihood *= 1.6
+            if person in self.vaccinated:
+                likelihood *= 1.6 * (1 - self.vaccine_effect)
+            else:
+                likelihood *= 1.6
         else:
-            likelihood *= 0.8
-        return probtools.random_event(1-(1-likelihood)**contact_strength)
+            if person in self.vaccinated:
+                likelihood *= .8 * (1 - self.vaccine_effect)
+            else:
+                likelihood *= 0.8
+        return probtools.random_event((1-(1-likelihood)**contact_strength))
 
     def execute_main_step(self):
         self.day += 1
@@ -436,8 +454,7 @@ class Disease(object):
 
 
 if __name__ == '__main__':
-    mse_arr = []
-    parameters =  pm.parameter_creator('params/param_3.txt') 
+    parameters = pm.parameter_creator('model_param.txt')
     recorder = analysis.recorder(['tests_performed_total', 'positive_tests_total', 'active_cases'], 'parameter_3.hdf5')
     for i in range(1):
         pandemic = Disease(parameters.randomized_sample())# setting empty dict of values
