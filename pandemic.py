@@ -12,6 +12,7 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 import parameter as pm
 import json
 import analysis
@@ -21,6 +22,8 @@ import universal
 import worldbuilder2 as worldbuilder
 import gather2 as gather
 import numpy as np
+import csv
+import chart_generation
 
 
 
@@ -426,13 +429,26 @@ class Disease(object):
     def run(self,number): 
         self.recorder.record(self.recorded_info)
 
-        for index in range(self.run_days):
-            self.execute_main_step()
+        # create CSV containing time series data
+        run_number = number + 1
+        with open('timeSeries%s.csv' % run_number, 'w', newline='') as series:
+            writer = csv.writer(series)
+            writer.writerow(['Run', 'Day', 'Pos. Tests Today', 'Susceptible', 'Infected', 'Removed',
+                             'Quarantined', 'Contact Traces Today', 'Tests Today', 'Average Transmissions'])
+            for index in range(self.run_days):
+                self.execute_main_step()
+                # the print statement below came with the code and I have used this as a template to write csv data
+                # print('%04i-%03i  S %05i  I %05i  R %05i  Q %05i  CT %05i  TP %05i  R %5.3f' % (number+1,index+1,len(self.susceptible),len(self.infected),len(self.removed),len(self.quarantined),self.contact_traces_performed_today,self.tests_performed_today,self.average_transmissions))
+                writer.writerow([number + 1, index + 1, self.positive_tests_total,
+                                 len(self.susceptible), len(self.infected), len(self.removed), len(self.quarantined),
+                                 self.contact_traces_performed_today, self.tests_performed_total,
+                                 self.average_transmissions])
+                self.recorder.record(self.recorded_info)
 
-            self.recorder.record(self.recorded_info)
+        # create time series charts using matplotlib
+        # see functions in chart_generation.py
+        chart_generation.show_total_active_cases(run_number)
 
-       
-        
     def multiple_runs(self,number, recorder):
         output_every = max(int(number / 4),1)
         for runno in range(number):
@@ -458,7 +474,7 @@ if __name__ == '__main__':
     recorder = analysis.recorder(['tests_performed_total', 'positive_tests_total', 'active_cases'], 'parameter_3.hdf5')
     for i in range(1):
         pandemic = Disease(parameters.randomized_sample())# setting empty dict of values
-        pandemic.multiple_runs(15,recorder)
+        pandemic.multiple_runs(5,recorder)
 
         #new generation after 25 random runs
         #recorder.writer.create_new_gen()  
