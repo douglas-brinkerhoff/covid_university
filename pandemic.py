@@ -563,7 +563,7 @@ class Disease(object):
         pyplot.legend()
         pyplot.xlabel("Day")
         pyplot.ylabel("Active Cases")
-        pyplot.title("Daily Number of Active COVID-19 Cases at UMT")
+        pyplot.title("Daily Number of Active COVID-19 Cases at UMT\nVaccine Distribution: 100% Vaccine Effectiveness: 90%")
         pyplot.show()
 
 
