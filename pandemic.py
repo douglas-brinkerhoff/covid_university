@@ -25,9 +25,6 @@ import pandas
 import numpy as np
 from matplotlib import pyplot
 
-# track MSE across multiple runs on target variables
-diff_pos_tests_all_runs = []
-diff_tot_tests_all_runs = []
 
 
 class FiFoQueue(object):
@@ -125,7 +122,7 @@ class Disease(object):
         self.initial_infected_fraction = self.get_parameter('initial_infected_fraction', universal.initial_infected_fraction)
 
         # Parameter - fraction of population that is initially immune
-        self.initial_removed_fraction = self.get_parameter('initial_removed_fraction',0.05)
+        self.initial_removed_fraction = self.get_parameter('initial_removed_fraction', universal.initial_removed_fraction)
 
         self.removed_cohorts = self.get_parameter('removed_cohorts',[])
 
@@ -534,37 +531,37 @@ class Disease(object):
         #  CUMULATIVE CHARTS:
 
         # POSITIVE TESTS
-        # model_series = pandas.read_csv('timeSeries%s.csv' % run_number, index_col="Day", usecols=['Day', 'Pos. Tests Today']).cumsum()
-        # actual_series = pandas.read_csv('data_positives.csv').cumsum()
-        # pyplot.plot(model_series, label = 'Predicted')
-        # pyplot.plot(actual_series, label = 'Actual')
-        # pyplot.legend()
-        # pyplot.xlabel("Day")
-        # pyplot.ylabel("Number of Positive Tests")
-        # pyplot.title("Predicting Number of Positive COVID19 Tests per Day at UMT")
-        # pyplot.show()
+        model_series = pandas.read_csv('timeSeries%s.csv' % run_number, index_col="Day", usecols=['Day', 'Pos. Tests Today']).cumsum()
+        actual_series = pandas.read_csv('data_positives.csv').cumsum()
+        pyplot.plot(model_series, label = 'Predicted')
+        pyplot.plot(actual_series, label = 'Actual')
+        pyplot.legend()
+        pyplot.xlabel("Day")
+        pyplot.ylabel("Positive Tests")
+        pyplot.title("Positive COVID19 Tests at UMT\n 90% Population Vaccinated")
+        pyplot.show()
 
         # TOTAL TESTS
-        # model_series = pandas.read_csv('timeSeries%s.csv' % run_number, index_col="Day", usecols=['Day', 'Tests Today']).cumsum()
-        # actual_series = pandas.read_csv('data_total_tests.csv').cumsum()
-        # pyplot.plot(model_series, label='Predicted')
-        # pyplot.plot(actual_series, label='Actual')
-        # pyplot.legend()
-        # pyplot.xlabel("Day")
-        # pyplot.ylabel("Number of  Tests Administered")
-        # pyplot.title("Predicting Number of COVID19 Tests per Day at UMT")
-        # pyplot.show()
-
-        # TOTAL ACTIVE CASES
-        model_series = pandas.read_csv('timeSeries%s.csv' % run_number, index_col="Day", usecols=['Day', 'Infected'])
-        actual_series = pandas.read_csv('data_actives.csv')
+        model_series = pandas.read_csv('timeSeries%s.csv' % run_number, index_col="Day", usecols=['Day', 'Tests Today']).cumsum()
+        actual_series = pandas.read_csv('data_total_tests.csv').cumsum()
         pyplot.plot(model_series, label='Predicted')
         pyplot.plot(actual_series, label='Actual')
         pyplot.legend()
         pyplot.xlabel("Day")
-        pyplot.ylabel("Active Cases")
-        pyplot.title("Daily Number of Active COVID-19 Cases at UMT\nVaccine Distribution: 100% Vaccine Effectiveness: 90%")
+        pyplot.ylabel("Tests Administered")
+        pyplot.title("Total Number of COVID19 Tests at UMT\n 90% Population Vaccinated")
         pyplot.show()
+
+        # TOTAL ACTIVE CASES
+        # model_series = pandas.read_csv('timeSeries%s.csv' % run_number, index_col="Day", usecols=['Day', 'Infected'])
+        # actual_series = pandas.read_csv('data_actives.csv')
+        # pyplot.plot(model_series, label='Predicted')
+        # pyplot.plot(actual_series, label='Actual')
+        # pyplot.legend()
+        # pyplot.xlabel("Day")
+        # pyplot.ylabel("Active Cases")
+        # pyplot.title("Daily Number of Active COVID-19 Cases at UMT\nVaccine Distribution: 100% Vaccine Effectiveness: 90%")
+        # pyplot.show()
 
 
 
@@ -595,7 +592,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.''')
     pandemic = Disease({})
 
-    pandemic.multiple_runs(2)
+    pandemic.multiple_runs(1)
 
     dc = gather.DataCollector(pandemic)
     dc.register_report('Total Infected',{'susceptible' : False},lambda x: x[-1] - x[0])
@@ -606,6 +603,3 @@ GNU General Public License for more details.''')
 
     file = open('mytestout.csv','w')
     file.write(result.output())
-
-    diff_pos_tests_all_runs.clear()  # clear list containing MSE for each run of this trial
-    diff_tot_tests_all_runs.clear()

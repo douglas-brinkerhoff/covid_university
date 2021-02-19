@@ -19,7 +19,7 @@ import probtools
 #pandemic parameters
 version = '2020-11-12-github' #date of code version
 vaccine = True
-quarantining = False #true or false
+quarantining = True #true or false
 contact_tracing = True #true or false
 initial_infected_fraction = 0.0036397844
 initial_removed_fraction = 0.038633253
@@ -38,7 +38,7 @@ daily_testing_false_positive = 0.0009862408
 contact_upscale_factor = 1.1708736
 
 vaccine_effectiveness = .9 # decimal form
-vaccine_rate = 100  # integer out of 100 i.e. 10% = 10  50% = 50
+vaccine_rate = 90  # integer out of 100 i.e. 10% = 10  50% = 50
 
 daily_outside_cases = [1,0,0,0] #this needs to be a vector the way the code is written; 1,0,0,0 corresponds to 1/4 (see paper)
 contact_tracing_testing_rate = 0.89044154
