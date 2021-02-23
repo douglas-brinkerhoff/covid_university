@@ -56,7 +56,6 @@ class parameter_creator:
 
                 # sample normal 
                 sample_val = norm.rvs(size=1)[0]
-                sample_val = float('%.3f' % sample_val)  # makes values only have 3 decimal points for neatness
 
                 # convert value to int if original was an int
                 if isinstance(value['mean'], int):
@@ -97,5 +96,3 @@ class parameter_creator:
         self.dict_params = {}
         self.dict_dist = {}
         self.get_params_dist()
-
-
